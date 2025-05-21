@@ -28,22 +28,21 @@ module ctlinfo
 
         contains
 
-        procedure, pass, public :: get_dset
-        procedure, pass, public :: get_title
-        procedure, pass, public :: get_undef
-        !procedure, pass, public :: get_options
-        !procedure, pass, public :: get_nx
-        !procedure, pass, public :: get_ny
-        !procedure, pass, public :: get_lats
-        !procedure, pass, public :: get_nz
-        !procedure, pass, public :: get_levs
-        !procedure, pass, public :: get_nt
-        !procedure, pass, public :: get_tini
-        !procedure, pass, public :: get_dt
-        !procedure, pass, public :: get_nvars
-        !procedure, pass, public :: get_var_idx
-        !procedure, pass, public :: get_var_description
-        !procedure, pass, public :: get_var_name
+        procedure, pass, public  :: get_dset
+        procedure, pass, public  :: get_title
+        procedure, pass, public  :: get_undef
+        procedure, pass, public  :: get_options
+        procedure, pass, public  :: get_gridnum
+        procedure, pass, private :: get_n
+        !procedure, pass, public  :: get_lats
+        !procedure, pass, public  :: get_levs
+        !procedure, pass, public  :: get_nt
+        !procedure, pass, public  :: get_tini
+        !procedure, pass, public  :: get_dt
+        !procedure, pass, public  :: get_nvars
+        !procedure, pass, public  :: get_var_idx
+        !procedure, pass, public  :: get_var_description
+        !procedure, pass, public  :: get_var_name
 
         final :: del
 
@@ -113,50 +112,50 @@ module ctlinfo
         ! delete spaces from left of each line
         output%ctl_all(1:lines) = del_left_space(output%ctl_all(1:lines))
 
-        call get_line(FLAG   ='dset'                 , &  !! IN
-                    & LINES  =lines                  , &  !! IN
-                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                    & LINE   =output%dset              )  !! OUT
+        call get_line_number(FLAG   ='dset'                 , &  !! IN
+                           & LINES  =lines                  , &  !! IN
+                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                           & LINE   =output%dset              )  !! OUT
 
-        call get_line(FLAG   ='title'                , &  !! IN
-                    & LINES  =lines                  , &  !! IN
-                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                    & LINE   =output%title             )  !! OUT
+        call get_line_number(FLAG   ='title'                , &  !! IN
+                           & LINES  =lines                  , &  !! IN
+                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                           & LINE   =output%title             )  !! OUT
 
-        call get_line(FLAG   ='undef'                , &  !! IN
-                    & LINES  =lines                  , &  !! IN
-                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                    & LINE   =output%undef             )  !! OUT
+        call get_line_number(FLAG   ='undef'                , &  !! IN
+                           & LINES  =lines                  , &  !! IN
+                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                           & LINE   =output%undef             )  !! OUT
 
-        call get_line(FLAG   ='options'              , &  !! IN
-                    & LINES  =lines                  , &  !! IN
-                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                    & LINE   =output%options           )  !! OUT
+        call get_line_number(FLAG   ='options'              , &  !! IN
+                           & LINES  =lines                  , &  !! IN
+                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                           & LINE   =output%options           )  !! OUT
 
-        call get_line(FLAG   ='xdef'                 , &  !! IN
-                    & LINES  =lines                  , &  !! IN
-                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                    & LINE   =output%xdef              )  !! OUT
+        call get_line_number(FLAG   ='xdef'                 , &  !! IN
+                           & LINES  =lines                  , &  !! IN
+                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                           & LINE   =output%xdef              )  !! OUT
 
-        call get_line(FLAG   ='ydef'                 , &  !! IN
-                    & LINES  =lines                  , &  !! IN
-                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                    & LINE   =output%ydef              )  !! OUT
+        call get_line_number(FLAG   ='ydef'                 , &  !! IN
+                           & LINES  =lines                  , &  !! IN
+                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                           & LINE   =output%ydef              )  !! OUT
 
-        call get_line(FLAG   ='zdef'                 , &  !! IN
-                    & LINES  =lines                  , &  !! IN
-                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                    & LINE   =output%zdef              )  !! OUT
+        call get_line_number(FLAG   ='zdef'                 , &  !! IN
+                           & LINES  =lines                  , &  !! IN
+                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                           & LINE   =output%zdef              )  !! OUT
 
-        call get_line(FLAG   ='tdef'                 , &  !! IN
-                    & LINES  =lines                  , &  !! IN
-                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                    & LINE   =output%tdef              )  !! OUT
+        call get_line_number(FLAG   ='tdef'                 , &  !! IN
+                           & LINES  =lines                  , &  !! IN
+                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                           & LINE   =output%tdef              )  !! OUT
 
-        call get_line(FLAG   ='vars'                 , &  !! IN
-                    & LINES  =lines                  , &  !! IN
-                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                    & LINE   =output%vars              )  !! OUT
+        call get_line_number(FLAG   ='vars'                 , &  !! IN
+                           & LINES  =lines                  , &  !! IN
+                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                           & LINE   =output%vars              )  !! OUT
 
     end function init
 
@@ -173,6 +172,52 @@ module ctlinfo
     end subroutine del
 
 
+    subroutine get_line_number(flag, lines, ctl_all, line)
+        character(*), intent(in)  :: flag
+        integer     , intent(in)  :: lines
+        character(*), intent(in)  :: ctl_all(lines)
+        integer     , intent(out) :: line
+
+        character(string_max) :: string
+        character(64)         :: line_flag
+        character(64)         :: flag_lower
+        integer :: where_space
+        integer :: i
+
+        ! flag to lower case
+        flag_lower = to_lower(flag)
+
+        do i = 1, lines
+            ! get a line
+            string = ctl_all(i)
+
+            ! find the first space
+            where_space = index(string, ' ')
+            ! if space was found
+            if (where_space /= 0) then
+
+                ! get the first column
+                line_flag = string(1:where_space)
+                ! the first column to lower case
+                line_flag = to_lower(line_flag)
+
+                if (trim(flag_lower) == trim(line_flag)) then
+                    ! if the flag was found from the first column, get the line number and end the routine
+                    line = i
+                    write(*,*) trim(flag) // ' is at line ', line
+                    return
+                endif
+            endif
+        enddo
+
+        ! if the flag was not found, return 0
+        line = 0
+
+        write(*,*) trim(flag) // ' is at line ', line
+
+    end subroutine get_line_number
+
+
     subroutine get_dset(self, output)
         class(ctl)  , intent(in)  :: self
         character(*), intent(out) :: output
@@ -180,7 +225,6 @@ module ctlinfo
         character(string_max) :: line
         character(256)        :: work_filename
         character(256)        :: ctl_dir
-        integer :: filename_beg
         integer :: filename_end
 
         ! get the dset line
@@ -246,13 +290,14 @@ module ctlinfo
         if (undef_end == -1) then
             undef_end = string_max
         endif
-
         work_undef = trim(line(1:undef_end))
         
+        ! get undef in real32
         if (present(output)) then
             read(work_undef,*) output
         endif
 
+        ! get undef in char
         if (present(output_char)) then
             output_char = trim(work_undef)
         endif
@@ -260,50 +305,74 @@ module ctlinfo
     end subroutine get_undef
 
 
-    subroutine get_line(flag, lines, ctl_all, line)
-        character(*), intent(in)  :: flag
-        integer     , intent(in)  :: lines
-        character(*), intent(in)  :: ctl_all(lines)
-        integer     , intent(out) :: line
+    subroutine get_options(self, output)
+        class(ctl)  , intent(in)  :: self
+        character(*), intent(out) :: output
 
-        character(string_max) :: string
-        character(64)         :: line_flag
-        character(64)         :: flag_lower
-        integer :: where_space
-        integer :: i
+        character(string_max) :: line
+        integer :: option_end
 
-        ! flag to lower case
-        flag_lower = to_lower(flag)
+        line = trim(self%ctl_all(self%options))
 
-        do i = 1, lines
-            ! get a line
-            string = ctl_all(i)
+        ! trimming
+        line = del_left_space(line(8:string_max))
+        option_end = index(line(1:string_max), '*') - 1
+        if (option_end == -1) then
+            option_end = string_max
+        endif
 
-            ! find the first space
-            where_space = index(string, ' ')
-            ! if space was found
-            if (where_space /= 0) then
+        output = trim(line(1:option_end))
 
-                ! get the first column
-                line_flag = string(1:where_space)
-                ! the first column to lower case
-                line_flag = to_lower(line_flag)
+    end subroutine get_options
 
-                if (trim(flag_lower) == trim(line_flag)) then
-                    ! if the flag was found from the first column, get the line number and end the routine
-                    line = i
-                    write(*,*) trim(flag) // ' is at line ', line
-                    return
-                endif
-            endif
-        enddo
 
-        ! if the flag was not found, return 0
-        line = 0
+    subroutine get_gridnum(self, nx, ny, nz)
+        class(ctl), intent(in) :: self
+        integer   , intent(out), optional :: nx
+        integer   , intent(out), optional :: ny
+        integer   , intent(out), optional :: nz
 
-        write(*,*) trim(flag) // ' is at line ', line
+        if (present(nx)) then
+            call self%get_n(self%xdef, &  !! OUT
+                          & nx         )  !! IN
+        endif
 
-    end subroutine get_line
+        if (present(ny)) then
+            call self%get_n(self%ydef, &  !! OUT
+                          & ny         )  !! IN
+        endif
+
+        if (present(nz)) then
+            call self%get_n(self%zdef, &  !! OUT
+                          & nz         )  !! IN
+        endif
+
+    end subroutine get_gridnum
+
+
+    subroutine get_n(self, line_number, output)
+        class(ctl), intent(in)  :: self
+        integer   , intent(in)  :: line_number
+        integer   , intent(out) :: output
+
+        character(string_max) :: line
+        character(16)         :: work_n
+        integer :: n_end
+
+        line = trim(self%ctl_all(line_number))
+
+        ! trimming
+        line = del_left_space(line(5:string_max))
+        n_end = index(line(1:string_max), ' ') - 1
+        if (n_end == -1) then
+            n_end = string_max
+        endif
+        work_n = trim(line(1:n_end))
+
+        !read(trim(line(1:n_end)),*) output
+        read(work_n,*) output
+
+    end subroutine get_n
 
 
     pure elemental function del_left_space(string) result(output)

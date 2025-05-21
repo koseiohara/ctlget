@@ -11,6 +11,10 @@ program test
     character(256) :: title
     character(256) :: undef_c
     real(real32)  :: undef
+    character(256) :: options
+    integer :: nx
+    integer :: ny
+    integer :: nz
 
     ctlname='JRA3Q_1990_2020_ZONAL_366.ctl'
 
@@ -19,11 +23,18 @@ program test
     call input%get_dset(filename)
     call input%get_title(title)
     call input%get_undef(undef, undef_c)
+    !call input%get_undef(output_char=undef_c)
+    call input%get_options(options)
+    call input%get_gridnum(nx=nx, ny=ny, nz=nz)
 
     write(*,'(A)') 'FILE : ' // trim(filename)
     write(*,'(A)') 'TITLE : ' // trim(title)
     write(*,'(A,ES0.7)') 'UNDEF : ', undef
     write(*,'(A)') 'UNDEF : ' // trim(undef_c)
+    write(*,'(A)') 'OPTIONS : ' // trim(options)
+    write(*,'(A,I0)') 'NX : ', nx
+    write(*,'(A,I0)') 'NY : ', ny
+    write(*,'(A,I0)') 'NZ : ', nz
 
 end program test
 
