@@ -36,7 +36,7 @@ module ctlinfo
         procedure, pass, private :: get_n
         !procedure, pass, public  :: get_lats
         !procedure, pass, public  :: get_levs
-        !procedure, pass, public  :: get_nt
+        procedure, pass, public  :: get_nt
         !procedure, pass, public  :: get_tini
         !procedure, pass, public  :: get_dt
         !procedure, pass, public  :: get_nvars
@@ -340,21 +340,31 @@ module ctlinfo
         integer   , intent(out), optional :: nz
 
         if (present(nx)) then
-            call self%get_n(self%xdef, &  !! OUT
-                          & nx         )  !! IN
+            call self%get_n(self%xdef, &  !! IN
+                          & nx         )  !! OUT
         endif
 
         if (present(ny)) then
-            call self%get_n(self%ydef, &  !! OUT
-                          & ny         )  !! IN
+            call self%get_n(self%ydef, &  !! IN
+                          & ny         )  !! OUT
         endif
 
         if (present(nz)) then
-            call self%get_n(self%zdef, &  !! OUT
-                          & nz         )  !! IN
+            call self%get_n(self%zdef, &  !! IN
+                          & nz         )  !! OUT
         endif
 
     end subroutine get_gridnum
+
+
+    subroutine get_nt(self, output)
+        class(ctl), intent(in)  :: self
+        integer   , intent(out) :: output
+        
+        call self%get_n(self%tdef, &  !! IN
+                      & output     )  !! OUT
+
+    end subroutine get_nt
 
 
     subroutine get_n(self, line_number, output)

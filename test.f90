@@ -15,6 +15,7 @@ program test
     integer :: nx
     integer :: ny
     integer :: nz
+    integer :: nt
 
     ctlname='JRA3Q_1990_2020_ZONAL_366.ctl'
 
@@ -26,6 +27,7 @@ program test
     !call input%get_undef(output_char=undef_c)
     call input%get_options(options)
     call input%get_gridnum(nx=nx, ny=ny, nz=nz)
+    call input%get_nt(nt)
 
     write(*,'(A)') 'FILE : ' // trim(filename)
     write(*,'(A)') 'TITLE : ' // trim(title)
@@ -35,6 +37,7 @@ program test
     write(*,'(A,I0)') 'NX : ', nx
     write(*,'(A,I0)') 'NY : ', ny
     write(*,'(A,I0)') 'NZ : ', nz
+    write(*,'(A,I0)') 'NT : ', nt
 
 end program test
 
