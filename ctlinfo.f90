@@ -1,11 +1,12 @@
 module ctlinfo
 
+    use, intrinsic :: iso_fortran_env, only : real32
     use caseconverter, only : to_lower
 
     implicit none
 
     private
-    public :: 
+    public :: ctl
 
 
     integer, parameter :: string_max = 512
@@ -19,42 +20,48 @@ module ctlinfo
         integer :: title
         integer :: undef
         integer :: options
-        integer :: nx
-        integer :: ny
-        integer :: nz
-        integer :: nt
+        integer :: xdef
+        integer :: ydef
+        integer :: zdef
+        integer :: tdef
         integer :: vars
-        integer :: endvars
 
         contains
 
-        procedure, public :: get_dset
-        procedure, public :: get_title
-        procedure, public :: get_undef
-        procedure, public :: get_options
-        procedure, public :: get_nx
-        procedure, public :: get_ny
-        procedure, public :: get_lats
-        procedure, public :: get_nz
-        procedure, public :: get_levs
-        procedure, public :: get_nt
-        procedure, public :: get_tini
-        procedure, public :: get_dt
-        procedure, public :: get_nvars
-        procedure, public :: get_var_idx
-        procedure, public :: get_var_description
-        procedure, public :: get_var_name
+        procedure, pass, public :: get_dset
+        procedure, pass, public :: get_title
+        procedure, pass, public :: get_undef
+        !procedure, pass, public :: get_options
+        !procedure, pass, public :: get_nx
+        !procedure, pass, public :: get_ny
+        !procedure, pass, public :: get_lats
+        !procedure, pass, public :: get_nz
+        !procedure, pass, public :: get_levs
+        !procedure, pass, public :: get_nt
+        !procedure, pass, public :: get_tini
+        !procedure, pass, public :: get_dt
+        !procedure, pass, public :: get_nvars
+        !procedure, pass, public :: get_var_idx
+        !procedure, pass, public :: get_var_description
+        !procedure, pass, public :: get_var_name
 
+        final :: del
 
     end type ctl
+
+
+    interface ctl
+        module procedure init
+    end interface ctl
 
 
     contains
 
 
+    ! Constructor
     function init(ctlname, linemax) result(output)
-        character(256), intent(in) :: ctlname
-        integer       , intent(in), optional :: linemax
+        character(*), intent(in) :: ctlname
+        integer     , intent(in), optional :: linemax     ! DEFAULT : 100
 
         type(ctl) :: output
 
@@ -96,27 +103,168 @@ module ctlinfo
 
         do i = 1, lmax
             read(unit,'(A)',iostat=EOF) output%ctl_all(i)
+            ! end the loop when EOF was found
             if (EOF /= 0) then
                 lines = i - 1
                 exit
             endif
         enddo
 
+        ! delete spaces from left of each line
         output%ctl_all(1:lines) = del_left_space(output%ctl_all(1:lines))
 
-        call get_line(FLAG='dset'                    , &  !! IN
-                    & LINES=lines                    , &  !! IN
+        call get_line(FLAG   ='dset'                 , &  !! IN
+                    & LINES  =lines                  , &  !! IN
                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                     & LINE   =output%dset              )  !! OUT
+
+        call get_line(FLAG   ='title'                , &  !! IN
+                    & LINES  =lines                  , &  !! IN
+                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                    & LINE   =output%title             )  !! OUT
+
+        call get_line(FLAG   ='undef'                , &  !! IN
+                    & LINES  =lines                  , &  !! IN
+                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                    & LINE   =output%undef             )  !! OUT
+
+        call get_line(FLAG   ='options'              , &  !! IN
+                    & LINES  =lines                  , &  !! IN
+                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                    & LINE   =output%options           )  !! OUT
+
+        call get_line(FLAG   ='xdef'                 , &  !! IN
+                    & LINES  =lines                  , &  !! IN
+                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                    & LINE   =output%xdef              )  !! OUT
+
+        call get_line(FLAG   ='ydef'                 , &  !! IN
+                    & LINES  =lines                  , &  !! IN
+                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                    & LINE   =output%ydef              )  !! OUT
+
+        call get_line(FLAG   ='zdef'                 , &  !! IN
+                    & LINES  =lines                  , &  !! IN
+                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                    & LINE   =output%zdef              )  !! OUT
+
+        call get_line(FLAG   ='tdef'                 , &  !! IN
+                    & LINES  =lines                  , &  !! IN
+                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                    & LINE   =output%tdef              )  !! OUT
+
+        call get_line(FLAG   ='vars'                 , &  !! IN
+                    & LINES  =lines                  , &  !! IN
+                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                    & LINE   =output%vars              )  !! OUT
 
     end function init
 
 
+    ! Destructor : deallocate ctl_all
+    subroutine del(self)
+        type(ctl), intent(inout) :: self
+
+        if (allocated(self%ctl_all)) then
+            deallocate(self%ctl_all)
+            write(*,*) 'Destructed'
+        endif
+
+    end subroutine del
+
+
+    subroutine get_dset(self, output)
+        class(ctl)  , intent(in)  :: self
+        character(*), intent(out) :: output
+
+        character(string_max) :: line
+        character(256)        :: work_filename
+        character(256)        :: ctl_dir
+        integer :: filename_beg
+        integer :: filename_end
+
+        ! get the dset line
+        line = trim(self%ctl_all(self%dset))
+
+        ! trimming
+        line          = del_left_space(line(5:string_max))
+        filename_end  = index(line(1:string_max), ' ') - 1
+        work_filename = line(1:filename_end)
+
+        if (work_filename(1:1) == '^') then
+            ! if binary name is written by relative path, delete '^' and add the path of control file
+            work_filename = trim(work_filename(2:256))
+
+            call get_ctl_dir(self%ctlname, &  !! IN
+                           & ctl_dir       )  !! OUT
+
+            output = trim(ctl_dir) // trim(work_filename)
+        else
+            ! if binary file is written by absolute path
+            output = trim(work_filename)
+        endif
+
+    end subroutine get_dset
+
+
+    subroutine get_title(self, output)
+        class(ctl), intent(in)    :: self
+        character(*), intent(out) :: output
+
+        character(string_max) :: line
+        integer :: title_end
+
+        ! get the title line
+        line = trim(self%ctl_all(self%title))
+
+        ! trimming
+        line      = del_left_space(line(6:string_max))
+        title_end = index(line(1:string_max), '*') - 1
+        if (title_end == -1) then
+            title_end = string_max
+        endif
+        output = trim(line(1:title_end))
+
+    end subroutine get_title
+
+
+    subroutine get_undef(self, output, output_char)
+        class(ctl), intent(in) :: self
+        real(real32), intent(out), optional :: output
+        character(*), intent(out), optional :: output_char
+
+        character(string_max) :: line
+        character(64) :: work_undef
+        integer :: undef_end
+
+        ! get the undef line
+        line = trim(self%ctl_all(self%undef))
+
+        ! trimming
+        line = del_left_space(line(6:string_max))
+        undef_end = index(line(1:string_max), ' ') - 1
+        if (undef_end == -1) then
+            undef_end = string_max
+        endif
+
+        work_undef = trim(line(1:undef_end))
+        
+        if (present(output)) then
+            read(work_undef,*) output
+        endif
+
+        if (present(output_char)) then
+            output_char = trim(work_undef)
+        endif
+
+    end subroutine get_undef
+
+
     subroutine get_line(flag, lines, ctl_all, line)
-        character(*)         , intent(in)  :: flag
-        integer              , intent(in)  :: lines
-        character(string_max), intent(in)  :: ctl_all
-        integer              , intent(out) :: line
+        character(*), intent(in)  :: flag
+        integer     , intent(in)  :: lines
+        character(*), intent(in)  :: ctl_all(lines)
+        integer     , intent(out) :: line
 
         character(string_max) :: string
         character(64)         :: line_flag
@@ -124,41 +272,70 @@ module ctlinfo
         integer :: where_space
         integer :: i
 
+        ! flag to lower case
         flag_lower = to_lower(flag)
 
         do i = 1, lines
+            ! get a line
             string = ctl_all(i)
+
+            ! find the first space
             where_space = index(string, ' ')
-            if (where_space == 0) then
+            ! if space was found
+            if (where_space /= 0) then
+
+                ! get the first column
                 line_flag = string(1:where_space)
+                ! the first column to lower case
                 line_flag = to_lower(line_flag)
+
                 if (trim(flag_lower) == trim(line_flag)) then
+                    ! if the flag was found from the first column, get the line number and end the routine
                     line = i
-                    exit
+                    write(*,*) trim(flag) // ' is at line ', line
+                    return
                 endif
             endif
         enddo
 
+        ! if the flag was not found, return 0
         line = 0
+
+        write(*,*) trim(flag) // ' is at line ', line
 
     end subroutine get_line
 
 
     pure elemental function del_left_space(string) result(output)
         character(*), intent(in) :: string
-        character(*) :: output
+        character(len(string))   :: output
          
         integer :: i
 
         output = ''
         do i = 1, len_trim(string)
-            if (string(i) == ' ') then
+            ! get the first non-space character
+            if (string(i:i) == ' ') then
                 cycle
             endif
             output = trim(string(i:))
             return
         enddo
 
-    end function del_lef_space
+    end function del_left_space
 
+
+    subroutine get_ctl_dir(ctlname, ctldir)
+        character(*), intent(in)  :: ctlname
+        character(*), intent(out) :: ctldir
+        integer :: where_slash
+
+        where_slash = index(ctlname, '/', back=.TRUE.)
+
+        ctldir = ctlname(1:where_slash)
+
+    end subroutine get_ctl_dir
+
+
+end module ctlinfo
 

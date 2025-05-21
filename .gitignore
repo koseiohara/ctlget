@@ -1,0 +1,12 @@
+*.o
+*.mod
+EXE
+exe
+ctlget
+*.dat
+*.bin
+*.grd
+*.ctl
+*.swp
+
+

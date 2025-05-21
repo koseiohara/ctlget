@@ -1,4 +1,4 @@
-module edat_CaseConverter
+module CaseConverter
 
     implicit none
 
@@ -66,5 +66,5 @@ module edat_CaseConverter
     end subroutine convert_core
 
 
-end module edat_CaseConverter
+end module CaseConverter
 
