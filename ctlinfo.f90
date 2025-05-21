@@ -233,6 +233,10 @@ module ctlinfo
         ! trimming
         line          = del_left_space(line(5:string_max))
         filename_end  = index(line(1:string_max), ' ') - 1
+        ! if space is not found, the last character is selected
+        if (filename_end == -1) then
+            filename_end = string_max
+        endif
         work_filename = line(1:filename_end)
 
         if (work_filename(1:1) == '^') then
@@ -264,6 +268,7 @@ module ctlinfo
         ! trimming
         line      = del_left_space(line(6:string_max))
         title_end = index(line(1:string_max), '*') - 1
+        ! if space is not found, the last character is selected
         if (title_end == -1) then
             title_end = string_max
         endif
@@ -287,6 +292,7 @@ module ctlinfo
         ! trimming
         line = del_left_space(line(6:string_max))
         undef_end = index(line(1:string_max), ' ') - 1
+        ! if space is not found, the last character is selected
         if (undef_end == -1) then
             undef_end = string_max
         endif
@@ -317,6 +323,7 @@ module ctlinfo
         ! trimming
         line = del_left_space(line(8:string_max))
         option_end = index(line(1:string_max), '*') - 1
+        ! if space is not found, the last character is selected
         if (option_end == -1) then
             option_end = string_max
         endif
@@ -364,12 +371,12 @@ module ctlinfo
         ! trimming
         line = del_left_space(line(5:string_max))
         n_end = index(line(1:string_max), ' ') - 1
+        ! if space is not found, the last character is selected
         if (n_end == -1) then
             n_end = string_max
         endif
         work_n = trim(line(1:n_end))
 
-        !read(trim(line(1:n_end)),*) output
         read(work_n,*) output
 
     end subroutine get_n
