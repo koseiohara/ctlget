@@ -16,22 +16,22 @@ module ctlinfo
         private
         character(256) :: ctlname                               ! File name of the control file
         character(string_max), allocatable :: ctl_all(:)        ! All lines of control file
-        integer       :: number_of_variables                    ! Number of variables defined in the file
-        integer       :: lines                                  ! Number of lines of the control file
-        logical       :: option_read                            ! Flag whether option has already read
-        logical       :: yrev                                   ! wheter data is yrev
-        logical       :: zrev                                   ! wheter data is zrev
-        logical       :: calendar_365                           ! Whether data include leap days
-        character(16) :: endian                                 ! Endian of binary file
-        integer       :: dset                                   ! The line number dset statement is written
-        integer       :: title                                  ! The line number title statement is written
-        integer       :: undef                                  ! The line number undef statement is written
-        integer       :: options                                ! The line number options statement is written
-        integer       :: xdef                                   ! The line number xdef statement is written
-        integer       :: ydef                                   ! The line number ydef statement is written
-        integer       :: zdef                                   ! The line number zdef statement is written
-        integer       :: tdef                                   ! The line number tdef statement is written
-        integer       :: vars                                   ! The line number vars statement is written
+        integer      :: number_of_variables                     ! Number of variables defined in the file
+        integer      :: lines                                   ! Number of lines of the control file
+        logical      :: option_read                             ! Flag whether option has already read
+        logical      :: yrev                                    ! wheter data is yrev
+        logical      :: zrev                                    ! wheter data is zrev
+        logical      :: calendar_365                            ! Whether data include leap days
+        character(8) :: endian                                  ! Endian of binary file
+        integer      :: dset                                    ! The line number dset statement is written
+        integer      :: title                                   ! The line number title statement is written
+        integer      :: undef                                   ! The line number undef statement is written
+        integer      :: options                                 ! The line number options statement is written
+        integer      :: xdef                                    ! The line number xdef statement is written
+        integer      :: ydef                                    ! The line number ydef statement is written
+        integer      :: zdef                                    ! The line number zdef statement is written
+        integer      :: tdef                                    ! The line number tdef statement is written
+        integer      :: vars                                    ! The line number vars statement is written
 
         contains
 
@@ -60,8 +60,6 @@ module ctlinfo
         procedure, pass  , private :: get_coordinate
         procedure, nopass, private :: get_ctl_dir
         procedure, nopass, private :: skip_column
-
-        final :: del
 
     end type ctl
 
@@ -187,15 +185,16 @@ module ctlinfo
     end function init
 
 
-    ! Destructor : deallocate ctl_all
-    subroutine del(self)
-        type(ctl), intent(inout) :: self
+    !! Destructor : deallocate ctl_all
+    !subroutine del(self)
+    !    !type(ctl), intent(inout) :: self
+    !    class(ctl), intent(inout) :: self
 
-        if (allocated(self%ctl_all)) then
-            deallocate(self%ctl_all)
-        endif
+    !    if (allocated(self%ctl_all)) then
+    !        deallocate(self%ctl_all)
+    !    endif
 
-    end subroutine del
+    !end subroutine del
 
 
     subroutine get_dset(self, output)
@@ -222,6 +221,9 @@ module ctlinfo
         if (work_filename(1:1) == '^') then
             ! if binary name is written by relative path, delete '^' and add the path of control file
             work_filename = trim(work_filename(2:256))
+            if (work_filename(1:2) == './') then
+                work_filename = work_filename(3:256)
+            endif
 
             call get_ctl_dir(self%ctlname, &  !! IN
                            & ctl_dir       )  !! OUT

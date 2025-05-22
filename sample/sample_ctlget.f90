@@ -7,8 +7,7 @@ program sample_ctlget
     implicit none
     
     type(ctl) :: input_ctl
-    !character(256), parameter :: ctlname='./sample.ctl'
-    character(256), parameter :: ctlname='/mnt/hail2/RRA5km/Daily/Precipitation/Store/Daily_Precipitation.ctl'
+    character(256), parameter :: ctlname='../ctl/sample.ctl'
     character(256) :: binname
     character(256) :: title
     real(real32)   :: undef
@@ -44,7 +43,7 @@ program sample_ctlget
     write(*,*)
     call input_ctl%get_undef(undef     =undef     , &  !! OUT : Optional. Undef value. real32
                            & undef_char=undef_char  )  !! OUT : Optional. Undef value. character
-    write(*,'(A,ES0.4)') 'Result of get_undef() : real32    = ', undef
+    write(*,'(A,ES12.4)') 'Result of get_undef() : real32    = ', undef
     write(*,'(A)')       'Result of get_undef() : character = ' // trim(undef_char)
 
     write(*,*)
@@ -91,17 +90,17 @@ program sample_ctlget
     write(*,*)
     call input_ctl%get_x(x(1:nx))  !! OUT : x-coordinate
     write(*,'(A)') 'Result of get_x()'
-    write(*,'(A,*(ES0.4,:,",  "))') 'X = ', x(1:nx)
+    write(*,'(A,*(ES12.4,:,",  "))') 'X = ', x(1:nx)
     
     write(*,*)
     call input_ctl%get_y(y(1:ny))  !! OUT : x-coordinate
     write(*,'(A)') 'Result of get_y()'
-    write(*,'(A,*(ES0.4,:,",  "))') 'Y = ', y(1:ny)
+    write(*,'(A,*(ES12.4,:,",  "))') 'Y = ', y(1:ny)
     
     write(*,*)
     call input_ctl%get_z(z(1:nz))  !! OUT : x-coordinate
     write(*,'(A)') 'Result of get_z()'
-    write(*,'(A,*(ES0.4,:,",  "))') 'Z = ', z(1:nz)
+    write(*,'(A,*(ES12.4,:,",  "))') 'Z = ', z(1:nz)
 
     write(*,*)
     call input_ctl%get_tini(initial_datetime(1:5))  !! OUT : Date and time of the first record
