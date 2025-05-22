@@ -1,7 +1,12 @@
 LIB = libctlget.a
-OBJS = caseconverter.o ctlinfo.o
+OBJS = caseconverter.o ctlget.o
+
+EXPORT_OBJ = ctlget.o
 
 FC = ifort
+
+DIR = ${HOME}/FortranLib
+
 #FC = gfortran
 ifeq (${FC}, ifort)
 	FLAGS = -O3 -warn all -traceback
@@ -17,11 +22,19 @@ all : ${LIB}
 ${LIB} : ${OBJS}
 	ar rcs $@ $^
 
-.PHONY : clean re
+.PHONY : clean re install
 
 clean :
 	rm -fv *.o *.mod *.a
 
 re : clean all
+
+install :
+	cp ${LIB} ${DIR}/lib/
+	cp ${EXPORT_OBJ:.o=.mod} ${DIR}/include/
+
+uninslatt :
+	rm -fv ${DIR}/lib/${LIB}
+	rm -fv ${EXPORT_OBJ:%.o=${DIR}/include/%.mod}
 
 

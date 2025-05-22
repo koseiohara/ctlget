@@ -10,8 +10,8 @@ else
 	FLAGS = -O2 -Wall -fbacktrace
 endif
 
-IPATH = -I ../src/
-LPATH = -L ../src/
+IPATH = -I ${HOME}/FortranLib/include
+LPATH = -L ${HOME}/FortranLib/lib
 
 %.o : %.f90
 	${FC} -c $< ${FLAGS} ${IPATH}

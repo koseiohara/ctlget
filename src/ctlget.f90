@@ -1,4 +1,4 @@
-module ctlinfo
+module ctlget
 
     use, intrinsic :: iso_fortran_env, only : real32
     use caseconverter, only : to_lower
@@ -873,5 +873,5 @@ module ctlinfo
     end function skip_column
 
 
-end module ctlinfo
+end module ctlget
 

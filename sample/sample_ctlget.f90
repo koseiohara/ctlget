@@ -2,7 +2,7 @@
 program sample_ctlget
     
     use, intrinsic :: iso_fortran_env
-    use ctlinfo, only : ctl
+    use ctlget, only : ctl
 
     implicit none
     
