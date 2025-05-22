@@ -193,7 +193,6 @@ module ctlinfo
 
         if (allocated(self%ctl_all)) then
             deallocate(self%ctl_all)
-            write(*,*) 'Destructed'
         endif
 
     end subroutine del
@@ -258,10 +257,10 @@ module ctlinfo
     end subroutine get_title
 
 
-    subroutine get_undef(self, output, output_char)
+    subroutine get_undef(self, undef, undef_char)
         class(ctl), intent(in) :: self
-        real(real32), intent(out), optional :: output
-        character(*), intent(out), optional :: output_char
+        real(real32), intent(out), optional :: undef
+        character(*), intent(out), optional :: undef_char
 
         character(string_max) :: line
         character(64) :: work_undef
@@ -280,13 +279,13 @@ module ctlinfo
         work_undef = trim(line(1:undef_end))
         
         ! get undef in real32
-        if (present(output)) then
-            read(work_undef,*) output
+        if (present(undef)) then
+            read(work_undef,*) undef
         endif
 
         ! get undef in char
-        if (present(output_char)) then
-            output_char = trim(work_undef)
+        if (present(undef_char)) then
+            undef_char = trim(work_undef)
         endif
 
     end subroutine get_undef
@@ -645,7 +644,7 @@ module ctlinfo
         if (present(idx)) then
             if (idx > self%number_of_variables) then
                 write(0,'(A)') '<ERROR STOP>'
-                write(0,'(A)') 'In get_var_name() : The specified index exceeds the number of variables'
+                write(0,'(A)') 'In get_var_description() : The specified index exceeds the number of variables'
                 write(0,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
                 write(0,'(A,I0)') 'Specified Index                          : ', idx
                 ERROR STOP

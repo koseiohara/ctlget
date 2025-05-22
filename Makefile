@@ -1,6 +1,6 @@
 EXE = exe
 
-OBJS = caseconverter.o ctlinfo.o test.o
+OBJS = caseconverter.o ctlinfo.o sample_ctlget.o
 
 FC = ifort
 FLAGS = -O2 -warn all -traceback -check all
