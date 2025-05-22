@@ -110,7 +110,7 @@ module ctlinfo
         enddo
 
         ! delete spaces from left of each line
-        output%ctl_all(1:lines) = del_left_space(output%ctl_all(1:lines))
+        output%ctl_all(1:lines) = adjustl(output%ctl_all(1:lines))
 
         call get_line_number(FLAG   ='dset'                 , &  !! IN
                            & LINES  =lines                  , &  !! IN
@@ -231,7 +231,7 @@ module ctlinfo
         line = trim(self%ctl_all(self%dset))
 
         ! trimming
-        line          = del_left_space(line(5:string_max))
+        line          = adjustl(line(5:string_max))
         filename_end  = index(line(1:string_max), ' ') - 1
         ! if space is not found, the last character is selected
         if (filename_end == -1) then
@@ -266,7 +266,7 @@ module ctlinfo
         line = trim(self%ctl_all(self%title))
 
         ! trimming
-        line      = del_left_space(line(6:string_max))
+        line      = adjustl(line(6:string_max))
         title_end = index(line(1:string_max), '*') - 1
         ! if space is not found, the last character is selected
         if (title_end == -1) then
@@ -290,7 +290,7 @@ module ctlinfo
         line = trim(self%ctl_all(self%undef))
 
         ! trimming
-        line = del_left_space(line(6:string_max))
+        line = adjustl(line(6:string_max))
         undef_end = index(line(1:string_max), ' ') - 1
         ! if space is not found, the last character is selected
         if (undef_end == -1) then
@@ -321,7 +321,7 @@ module ctlinfo
         line = trim(self%ctl_all(self%options))
 
         ! trimming
-        line = del_left_space(line(8:string_max))
+        line = adjustl(line(8:string_max))
         option_end = index(line(1:string_max), '*') - 1
         ! if space is not found, the last character is selected
         if (option_end == -1) then
@@ -379,7 +379,7 @@ module ctlinfo
         line = trim(self%ctl_all(line_number))
 
         ! trimming
-        line = del_left_space(line(5:string_max))
+        line = adjustl(line(5:string_max))
         n_end = index(line(1:string_max), ' ') - 1
         ! if space is not found, the last character is selected
         if (n_end == -1) then
