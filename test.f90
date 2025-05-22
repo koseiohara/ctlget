@@ -28,6 +28,8 @@ program test
     character(16) :: var
     integer :: idx
 
+    character(128) :: descr
+
     ctlname='JRA3Q_1990_2020_ZONAL_366.ctl'
 
 
@@ -80,6 +82,12 @@ program test
     call input%get_var_idx(var, idx)
     write(*,'(A,I0)') 'index of ' // trim(var) // ' is ', idx
 
+    idx = 64
+    call input%get_var_name(idx, var)
+    write(*,'(A,I0)') 'index of ' // trim(var) // ' is ', idx
+
+    call input%get_var_description(descr, var=var)
+    write(*,'(A)') trim(descr)
 
 end program test
 

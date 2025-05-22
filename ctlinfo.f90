@@ -15,38 +15,41 @@ module ctlinfo
     type ctl
         private
         character(256) :: ctlname
-        character(string_max), allocatable :: ctl_all(:)
-        integer :: lines
-        integer :: dset
-        integer :: title
-        integer :: undef
-        integer :: options
-        integer :: xdef
-        integer :: ydef
-        integer :: zdef
-        integer :: tdef
-        integer :: vars
+        character(string_max), allocatable :: ctl_all(:)        ! All lines of control file
+        integer :: number_of_variables                          ! Number of variables defined in the file
+        integer :: lines                                        ! Number of lines of the control file
+        integer :: dset                                         ! The line number dset statement is written
+        integer :: title                                        ! The line number title statement is written
+        integer :: undef                                        ! The line number undef statement is written
+        integer :: options                                      ! The line number options statement is written
+        integer :: xdef                                         ! The line number xdef statement is written
+        integer :: ydef                                         ! The line number ydef statement is written
+        integer :: zdef                                         ! The line number zdef statement is written
+        integer :: tdef                                         ! The line number tdef statement is written
+        integer :: vars                                         ! The line number vars statement is written
 
         contains
 
         procedure, nopass, private :: get_line_number
-        procedure, pass, public  :: get_dset
-        procedure, pass, public  :: get_title
-        procedure, pass, public  :: get_undef
-        procedure, pass, public  :: get_options
-        procedure, pass, public  :: get_gridnum
-        procedure, pass, public  :: get_nt
-        procedure, pass, private :: get_n
-        procedure, pass, public  :: get_x
-        procedure, pass, public  :: get_y
-        procedure, pass, public  :: get_z
-        procedure, pass, private :: get_coordinate
-        procedure, pass, public  :: get_tini
-        procedure, pass, public  :: get_dt
-        procedure, pass, public  :: get_nvars
-        procedure, pass, public  :: get_var_idx
-        !procedure, pass, public  :: get_var_description
-        !procedure, pass, public  :: get_var_name
+        procedure, nopass, private :: get_number_of_variables
+        procedure, pass  , public  :: get_dset
+        procedure, pass  , public  :: get_title
+        procedure, pass  , public  :: get_undef
+        procedure, pass  , public  :: get_options
+        procedure, pass  , public  :: isYrev
+        procedure, pass  , public  :: get_gridnum
+        procedure, pass  , public  :: get_nt
+        procedure, pass  , private :: get_n
+        procedure, pass  , public  :: get_x
+        procedure, pass  , public  :: get_y
+        procedure, pass  , public  :: get_z
+        procedure, pass  , private :: get_coordinate
+        procedure, pass  , public  :: get_tini
+        procedure, pass  , public  :: get_dt
+        procedure, pass  , public  :: get_nvars
+        procedure, pass  , public  :: get_var_idx
+        procedure, pass  , public  :: get_var_name
+        procedure, pass  , public  :: get_var_description
         procedure, nopass, private :: get_ctl_dir
         procedure, nopass, private :: skip_column
 
@@ -165,6 +168,8 @@ module ctlinfo
                            & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                            & LINE   =output%vars              )  !! OUT
 
+        call get_number_of_variables(output)  !! INOUT
+
     end function init
 
 
@@ -224,6 +229,28 @@ module ctlinfo
         write(*,*) trim(flag) // ' is at line ', line
 
     end subroutine get_line_number
+
+
+    subroutine get_number_of_variables(self)
+        class(ctl), intent(inout) :: self
+
+        character(string_max) :: line
+        integer :: n_end
+
+        line = self%ctl_all(self%vars)
+
+        ! trimming
+        line = adjustl(line(5:string_max))
+        n_end = index(line(1:string_max), '*') - 1
+        ! if space is not found, the last character is selected
+        if (n_end == -1) then
+            n_end = string_max
+        endif
+        line = trim(line(1:n_end))
+
+        read(line,*) self%number_of_variables
+
+    end subroutine get_number_of_variables
 
 
     subroutine get_dset(self, output)
@@ -579,21 +606,7 @@ module ctlinfo
         class(ctl), intent(in)  :: self
         integer   , intent(out) :: output
 
-        character(string_max) :: line
-        integer :: n_end
-
-        line = self%ctl_all(self%vars)
-
-        ! trimming
-        line = adjustl(line(5:string_max))
-        n_end = index(line(1:string_max), '*') - 1
-        ! if space is not found, the last character is selected
-        if (n_end == -1) then
-            n_end = string_max
-        endif
-        line = trim(line(1:n_end))
-
-        read(line,*) output
+        output = self%number_of_variables
 
     end subroutine get_nvars
 
@@ -618,6 +631,87 @@ module ctlinfo
         output = output - self%vars
 
     end subroutine get_var_idx
+
+
+    subroutine get_var_name(self, idx, output)
+        class(ctl)  , intent(in)  :: self
+        integer     , intent(in)  :: idx
+        character(*), intent(out) :: output
+
+        character(string_max) :: line
+        integer               :: var_end
+
+        if (idx > self%number_of_variables) then
+            write(0,'(A)') '<ERROR STOP>'
+            write(0,'(A)') 'In get_var_name() : The specified index exceeds the number of variables'
+            write(0,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
+            write(0,'(A,I0)') 'Specified Index                          : ', idx
+            ERROR STOP
+        endif
+
+        line = self%ctl_all(self%vars + idx)
+        var_end = index(line, ' ') - 1
+
+        output = line(1:var_end)
+
+    end subroutine get_var_name
+
+
+    subroutine get_var_description(self, output, idx, var)
+        class(ctl)  , intent(in)  :: self
+        character(*), intent(out) :: output
+        integer     , intent(in), optional :: idx
+        character(*), intent(in), optional :: var
+
+        character(string_max) :: line
+        integer :: idx_cp
+        integer :: where_space
+
+        if (present(idx)) then
+            if (idx > self%number_of_variables) then
+                write(0,'(A)') '<ERROR STOP>'
+                write(0,'(A)') 'In get_var_name() : The specified index exceeds the number of variables'
+                write(0,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
+                write(0,'(A,I0)') 'Specified Index                          : ', idx
+                ERROR STOP
+            endif
+
+            idx_cp = idx
+        else if (present(var)) then
+            ! get the line $var is defined in
+            call get_line_number(var                       , &
+                               & self%lines                , &
+                               & self%ctl_all(1:self%lines), &
+                               & idx_cp                      )
+
+            if (idx_cp == 0) then
+                write(0,'(A)') '<ERROR STOP>'
+                write(0,'(A)') trim(var) // ' was not found in ' // trim(self%ctlname)
+                ERROR STOP
+            endif
+
+            idx_cp = idx_cp - self%vars
+        else
+            write(0,'(A)') '<ERROR STOP>'
+            write(0,'(A)') 'In get_var_description() : Both "idx" and "var" were not provided'
+            ERROR STOP
+        endif
+
+        line = self%ctl_all(self%vars + idx_cp)
+
+        ! delete the variable-name column
+        where_space = index(line, ' ')
+        line = adjustl(line(where_space+1:string_max))
+        ! delete the number-of-layers column
+        where_space = index(line, ' ')
+        line = adjustl(line(where_space+1:string_max))
+        ! delete the unit column
+        where_space = index(line, ' ')
+        line = adjustl(line(where_space+1:string_max))
+
+        output = trim(line)
+
+    end subroutine get_var_description
 
 
     subroutine get_ctl_dir(ctlname, ctldir)
