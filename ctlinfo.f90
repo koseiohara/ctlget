@@ -14,42 +14,50 @@ module ctlinfo
 
     type ctl
         private
-        character(256) :: ctlname
+        character(256) :: ctlname                               ! File name of the control file
         character(string_max), allocatable :: ctl_all(:)        ! All lines of control file
-        integer :: number_of_variables                          ! Number of variables defined in the file
-        integer :: lines                                        ! Number of lines of the control file
-        integer :: dset                                         ! The line number dset statement is written
-        integer :: title                                        ! The line number title statement is written
-        integer :: undef                                        ! The line number undef statement is written
-        integer :: options                                      ! The line number options statement is written
-        integer :: xdef                                         ! The line number xdef statement is written
-        integer :: ydef                                         ! The line number ydef statement is written
-        integer :: zdef                                         ! The line number zdef statement is written
-        integer :: tdef                                         ! The line number tdef statement is written
-        integer :: vars                                         ! The line number vars statement is written
+        integer       :: number_of_variables                    ! Number of variables defined in the file
+        integer       :: lines                                  ! Number of lines of the control file
+        logical       :: option_read                            ! Flag whether option has already read
+        logical       :: yrev                                   ! wheter data is yrev
+        logical       :: zrev                                   ! wheter data is zrev
+        logical       :: calendar_365                           ! Whether data include leap days
+        character(16) :: endian                                 ! Endian of binary file
+        integer       :: dset                                   ! The line number dset statement is written
+        integer       :: title                                  ! The line number title statement is written
+        integer       :: undef                                  ! The line number undef statement is written
+        integer       :: options                                ! The line number options statement is written
+        integer       :: xdef                                   ! The line number xdef statement is written
+        integer       :: ydef                                   ! The line number ydef statement is written
+        integer       :: zdef                                   ! The line number zdef statement is written
+        integer       :: tdef                                   ! The line number tdef statement is written
+        integer       :: vars                                   ! The line number vars statement is written
 
         contains
 
-        procedure, nopass, private :: get_line_number
-        procedure, nopass, private :: get_number_of_variables
         procedure, pass  , public  :: get_dset
         procedure, pass  , public  :: get_title
         procedure, pass  , public  :: get_undef
         procedure, pass  , public  :: get_options
         procedure, pass  , public  :: isYrev
+        procedure, pass  , public  :: isZrev
+        procedure, pass  , public  :: includeLeap
+        procedure, pass  , public  :: getEndian
         procedure, pass  , public  :: get_gridnum
         procedure, pass  , public  :: get_nt
-        procedure, pass  , private :: get_n
         procedure, pass  , public  :: get_x
         procedure, pass  , public  :: get_y
         procedure, pass  , public  :: get_z
-        procedure, pass  , private :: get_coordinate
         procedure, pass  , public  :: get_tini
         procedure, pass  , public  :: get_dt
         procedure, pass  , public  :: get_nvars
         procedure, pass  , public  :: get_var_idx
         procedure, pass  , public  :: get_var_name
         procedure, pass  , public  :: get_var_description
+        procedure, nopass, private :: get_line_number
+        procedure, nopass, private :: get_number_of_variables
+        procedure, pass  , private :: get_n
+        procedure, pass  , private :: get_coordinate
         procedure, nopass, private :: get_ctl_dir
         procedure, nopass, private :: skip_column
 
@@ -118,7 +126,6 @@ module ctlinfo
                 exit
             endif
         enddo
-        output%lines = lines
 
         ! delete spaces from left of each line
         output%ctl_all(1:lines) = adjustl(output%ctl_all(1:lines))
@@ -170,6 +177,13 @@ module ctlinfo
 
         call get_number_of_variables(output)  !! INOUT
 
+        ! Name of control file
+        output%ctlname = trim(ctlname)
+        ! Number of lines in control file
+        output%lines = lines
+        ! set status whether option has already read
+        output%option_read = .FALSE.
+
     end function init
 
 
@@ -183,74 +197,6 @@ module ctlinfo
         endif
 
     end subroutine del
-
-
-    subroutine get_line_number(flag, lines, ctl_all, line)
-        character(*), intent(in)  :: flag
-        integer     , intent(in)  :: lines
-        character(*), intent(in)  :: ctl_all(lines)
-        integer     , intent(out) :: line
-
-        character(string_max) :: string
-        character(64)         :: line_flag
-        character(64)         :: flag_lower
-        integer :: where_space
-        integer :: i
-
-        ! flag to lower case
-        flag_lower = to_lower(flag)
-
-        do i = 1, lines
-            ! get a line
-            string = ctl_all(i)
-
-            ! find the first space
-            where_space = index(string, ' ')
-            ! if space was found
-            if (where_space /= 0) then
-
-                ! get the first column
-                line_flag = string(1:where_space)
-                ! the first column to lower case
-                line_flag = to_lower(line_flag)
-
-                if (trim(flag_lower) == trim(line_flag)) then
-                    ! if the flag was found from the first column, get the line number and end the routine
-                    line = i
-                    write(*,*) trim(flag) // ' is at line ', line
-                    return
-                endif
-            endif
-        enddo
-
-        ! if the flag was not found, return 0
-        line = 0
-
-        write(*,*) trim(flag) // ' is at line ', line
-
-    end subroutine get_line_number
-
-
-    subroutine get_number_of_variables(self)
-        class(ctl), intent(inout) :: self
-
-        character(string_max) :: line
-        integer :: n_end
-
-        line = self%ctl_all(self%vars)
-
-        ! trimming
-        line = adjustl(line(5:string_max))
-        n_end = index(line(1:string_max), '*') - 1
-        ! if space is not found, the last character is selected
-        if (n_end == -1) then
-            n_end = string_max
-        endif
-        line = trim(line(1:n_end))
-
-        read(line,*) self%number_of_variables
-
-    end subroutine get_number_of_variables
 
 
     subroutine get_dset(self, output)
@@ -347,10 +293,11 @@ module ctlinfo
 
 
     subroutine get_options(self, output)
-        class(ctl)  , intent(in)  :: self
-        character(*), intent(out) :: output
+        class(ctl)  , intent(inout) :: self
+        character(*), intent(out)   :: output
 
         character(string_max) :: line
+        character(string_max) :: option_cp
         integer :: option_end
 
         line = trim(self%ctl_all(self%options))
@@ -365,7 +312,99 @@ module ctlinfo
 
         output = trim(line(1:option_end))
 
+        if (.NOT. self%option_read) then
+            ! set option related variables of ctl
+            option_cp = to_lower(trim(line(1:option_end)))
+            if (index(option_cp, 'yrev') == 0) then
+                self%yrev = .FALSE.
+            else
+                self%yrev = .TRUE.
+            endif
+
+            if (index(option_cp, 'zrev') == 0) then
+                self%zrev = .FALSE.
+            else
+                self%zrev = .TRUE.
+            endif
+
+            if (index(option_cp, '365_day_calendar') == 0) then
+                self%calendar_365 = .FALSE.
+            else
+                self%calendar_365 = .TRUE.
+            endif
+
+            if (index(option_cp, 'little_endian') > 0) then
+                self%endian = 'little'
+            else if (index(option_cp, 'big_endian') > 0) then
+                self%endian = 'big'
+            else
+                self%endian = 'native'
+            endif
+            
+            self%option_read = .TRUE.
+        endif
+
     end subroutine get_options
+
+
+    function isYrev(self) result(output)
+        class(ctl), intent(inout) :: self
+
+        logical      :: output
+        character(1) :: dummy
+
+        if (.NOT. self%option_read) then
+            call self%get_options(dummy)  !! OUT
+        endif
+
+        output = self%yrev
+
+    end function isYrev
+
+
+    function isZrev(self) result(output)
+        class(ctl), intent(inout) :: self
+
+        logical      :: output
+        character(1) :: dummy
+
+        if (.NOT. self%option_read) then
+            call self%get_options(dummy)  !! OUT
+        endif
+
+        output = self%zrev
+
+    end function isZrev
+
+
+    function includeLeap(self) result(output)
+        class(ctl), intent(inout) :: self
+
+        logical      :: output
+        character(1) :: dummy
+
+        if (.NOT. self%option_read) then
+            call self%get_options(dummy)  !! OUT
+        endif
+
+        output = (.NOT. self%calendar_365)
+
+    end function includeLeap
+
+
+    function getEndian(self) result(output)
+        class(ctl), intent(inout) :: self
+
+        character(8) :: output
+        character(1) :: dummy
+
+        if (.NOT. self%option_read) then
+            call self%get_options(dummy)  !! OUT
+        endif
+
+        output = self%endian
+
+    end function getEndian
 
 
     subroutine get_gridnum(self, nx, ny, nz)
@@ -400,31 +439,6 @@ module ctlinfo
                       & output     )  !! OUT
 
     end subroutine get_nt
-
-
-    subroutine get_n(self, line_number, output)
-        class(ctl), intent(in)  :: self
-        integer   , intent(in)  :: line_number
-        integer   , intent(out) :: output
-
-        character(string_max) :: line
-        character(16)         :: work_n
-        integer :: n_end
-
-        line = trim(self%ctl_all(line_number))
-
-        ! trimming
-        line = adjustl(line(5:string_max))
-        n_end = index(line(1:string_max), ' ') - 1
-        ! if space is not found, the last character is selected
-        if (n_end == -1) then
-            n_end = string_max
-        endif
-        work_n = trim(line(1:n_end))
-
-        read(work_n,*) output
-
-    end subroutine get_n
 
 
     subroutine get_x(self, output)
@@ -470,45 +484,6 @@ module ctlinfo
                                & output(1:n)  )  !! OUT
 
     end subroutine get_z
-
-
-    subroutine get_coordinate(self, line_number, n, output)
-        class(ctl)  , intent(in)  :: self
-        integer     , intent(in)  :: line_number
-        integer     , intent(in)  :: n
-        real(real32), intent(out) :: output(n)
-
-        character(string_max)   :: line
-        character(string_max*2) :: line_levels
-        character(8)            :: specify_method
-        character(8)            :: n_c
-        real(real32)            :: min
-        real(real32)            :: delta
-        integer :: i
-        integer :: where_method
-        integer :: levels_start
-
-        line = self%ctl_all(line_number)
-        line = adjustl(line(5:string_max))
-
-        read(line,*) n_c, specify_method
-        if (to_lower(trim(specify_method)) == 'linear') then
-            ! if coordinate is 'linear', compute it
-            read(line,*) n_c, specify_method, min, delta
-            output(1:n) = [(min+delta*real(i, kind=real32), i = 0, n-1)]
-            return
-        else
-            ! if coordinate is 'levels', concatenate def and the next line and get $n numbers of levels
-            where_method = index(to_lower(line), 'levels')
-            levels_start = where_method + 6
-            line_levels = trim(line) // ' ' // trim(self%ctl_all(line_number+1))
-            line_levels = line_levels(levels_start:)
-
-            read(line_levels,*) output(1:n)
-            return
-        endif
-
-    end subroutine get_coordinate
 
 
     subroutine get_tini(self, calendar)
@@ -712,6 +687,135 @@ module ctlinfo
         output = trim(line)
 
     end subroutine get_var_description
+
+
+    subroutine get_line_number(flag, lines, ctl_all, line)
+        character(*), intent(in)  :: flag
+        integer     , intent(in)  :: lines
+        character(*), intent(in)  :: ctl_all(lines)
+        integer     , intent(out) :: line
+
+        character(string_max) :: string
+        character(64)         :: line_flag
+        character(64)         :: flag_lower
+        integer :: where_space
+        integer :: i
+
+        ! flag to lower case
+        flag_lower = to_lower(flag)
+
+        do i = 1, lines
+            ! get a line
+            string = ctl_all(i)
+
+            ! find the first space
+            where_space = index(string, ' ')
+            ! if space was found
+            if (where_space /= 0) then
+
+                ! get the first column
+                line_flag = string(1:where_space)
+                ! the first column to lower case
+                line_flag = to_lower(line_flag)
+
+                if (trim(flag_lower) == trim(line_flag)) then
+                    ! if the flag was found from the first column, get the line number and end the routine
+                    line = i
+                    return
+                endif
+            endif
+        enddo
+
+        ! if the flag was not found, return 0
+        line = 0
+
+    end subroutine get_line_number
+
+
+    subroutine get_number_of_variables(self)
+        class(ctl), intent(inout) :: self
+
+        character(string_max) :: line
+        integer :: n_end
+
+        line = self%ctl_all(self%vars)
+
+        ! trimming
+        line = adjustl(line(5:string_max))
+        n_end = index(line(1:string_max), '*') - 1
+        ! if space is not found, the last character is selected
+        if (n_end == -1) then
+            n_end = string_max
+        endif
+        line = trim(line(1:n_end))
+
+        read(line,*) self%number_of_variables
+
+    end subroutine get_number_of_variables
+
+
+    subroutine get_n(self, line_number, output)
+        class(ctl), intent(in)  :: self
+        integer   , intent(in)  :: line_number
+        integer   , intent(out) :: output
+
+        character(string_max) :: line
+        character(16)         :: work_n
+        integer :: n_end
+
+        line = trim(self%ctl_all(line_number))
+
+        ! trimming
+        line = adjustl(line(5:string_max))
+        n_end = index(line(1:string_max), ' ') - 1
+        ! if space is not found, the last character is selected
+        if (n_end == -1) then
+            n_end = string_max
+        endif
+        work_n = trim(line(1:n_end))
+
+        read(work_n,*) output
+
+    end subroutine get_n
+
+
+    subroutine get_coordinate(self, line_number, n, output)
+        class(ctl)  , intent(in)  :: self
+        integer     , intent(in)  :: line_number
+        integer     , intent(in)  :: n
+        real(real32), intent(out) :: output(n)
+
+        character(string_max)   :: line
+        character(string_max*2) :: line_levels
+        character(8)            :: specify_method
+        character(8)            :: n_c
+        real(real32)            :: min
+        real(real32)            :: delta
+        integer :: i
+        integer :: where_method
+        integer :: levels_start
+
+        line = self%ctl_all(line_number)
+        line = adjustl(line(5:string_max))
+
+        read(line,*) n_c, specify_method
+        if (to_lower(trim(specify_method)) == 'linear') then
+            ! if coordinate is 'linear', compute it
+            read(line,*) n_c, specify_method, min, delta
+            output(1:n) = [(min+delta*real(i, kind=real32), i = 0, n-1)]
+            return
+        else
+            ! if coordinate is 'levels', concatenate def and the next line and get $n numbers of levels
+            where_method = index(to_lower(line), 'levels')
+            levels_start = where_method + 6
+            line_levels = trim(line) // ' ' // trim(self%ctl_all(line_number+1))
+            line_levels = line_levels(levels_start:)
+
+            read(line_levels,*) output(1:n)
+            return
+        endif
+
+    end subroutine get_coordinate
 
 
     subroutine get_ctl_dir(ctlname, ctldir)

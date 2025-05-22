@@ -35,32 +35,48 @@ program test
 
     input = ctl(ctlname, 200)
     call input%get_dset(filename)
+    write(*,'(A)') 'FILE : ' // trim(filename)
     call input%get_title(title)
+    write(*,'(A)') 'TITLE : ' // trim(title)
     call input%get_undef(undef, undef_c)
-    !call input%get_undef(output_char=undef_c)
+    write(*,'(A,ES0.7)') 'UNDEF : ', undef
+    write(*,'(A)') 'UNDEF : ' // trim(undef_c)
+
+    if (input%includeLeap()) then
+        write(*,*) 'File includes Leap days'
+    else
+        write(*,*) 'File do not includes Leap days'
+    endif
+
+    if (input%isZrev()) then
+        write(*,*) 'File is Zrev'
+    else
+        write(*,*) 'File is not Zrev'
+    endif
+
+    call input%get_undef(output_char=undef_c)
     call input%get_options(options)
+    write(*,'(A)') 'OPTIONS : ' // trim(options)
     call input%get_gridnum(nx=nx, ny=ny, nz=nz)
+    write(*,'(A,I0)') 'NX : ', nx
+    write(*,'(A,I0)') 'NY : ', ny
+    write(*,'(A,I0)') 'NZ : ', nz
     call input%get_nt(nt)
+    write(*,'(A,I0)') 'NT : ', nt
+
+    if (input%isYrev()) then
+        write(*,*) 'File is Yrev'
+    else
+        write(*,*) 'File is not Yrev'
+    endif
+
+    write(*,*) trim(input%getEndian()) // '-endian'
 
     allocate(x(nx))
     allocate(y(ny))
     allocate(z(nz))
 
-    write(*,'(A)') 'FILE : ' // trim(filename)
-    write(*,'(A)') 'TITLE : ' // trim(title)
-    write(*,'(A,ES0.7)') 'UNDEF : ', undef
-    write(*,'(A)') 'UNDEF : ' // trim(undef_c)
-    write(*,'(A)') 'OPTIONS : ' // trim(options)
-    write(*,'(A,I0)') 'NX : ', nx
-    write(*,'(A,I0)') 'NY : ', ny
-    write(*,'(A,I0)') 'NZ : ', nz
-    write(*,'(A,I0)') 'NT : ', nt
 
-    if ('GrADS' == 'grads') then
-        write(*,*) 'GrADS = grads'
-    else
-        write(*,*) 'GrADS /= grads'
-    endif
 
     call input%get_x(x(1:nx))
     write(*,'(A,*(ES0.3,:,", "))') 'X : ', x(1:nx)
@@ -78,7 +94,7 @@ program test
     call input%get_nvars(vars)
     write(*,'(A,I0)') 'VARS : ', vars
 
-    var = 'dkedt_vke'
+    var = 'kz'
     call input%get_var_idx(var, idx)
     write(*,'(A,I0)') 'index of ' // trim(var) // ' is ', idx
 
