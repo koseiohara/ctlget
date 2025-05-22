@@ -7,7 +7,6 @@ ctlget
 *.dat
 *.bin
 *.grd
-*.ctl
 *.swp
 
 

@@ -23,7 +23,7 @@ After making these settings, execute the makefile
 make
 make install
 ```
-`libctlget.a and `ctlget.mod` will be copied to `${DIR}/lib` and `${DIR}/include`, respectively.
+`libctlget.a` and `ctlget.mod` will be copied to `${DIR}/lib` and `${DIR}/include`, respectively.
 
 
 ## Tools

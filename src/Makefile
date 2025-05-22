@@ -22,7 +22,7 @@ all : ${LIB}
 ${LIB} : ${OBJS}
 	ar rcs $@ $^
 
-.PHONY : clean re install
+.PHONY : clean re install uninstall
 
 clean :
 	rm -fv *.o *.mod *.a
@@ -33,7 +33,7 @@ install :
 	cp ${LIB} ${DIR}/lib/
 	cp ${EXPORT_OBJ:.o=.mod} ${DIR}/include/
 
-uninslatt :
+uninstall :
 	rm -fv ${DIR}/lib/${LIB}
 	rm -fv ${EXPORT_OBJ:%.o=${DIR}/include/%.mod}
 
