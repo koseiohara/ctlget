@@ -42,7 +42,7 @@ module ctlget
         procedure, pass  , public  :: isYrev
         procedure, pass  , public  :: isZrev
         procedure, pass  , public  :: includeLeap
-        procedure, pass  , public  :: getEndian
+        procedure, pass  , public  :: get_endian
         procedure, pass  , public  :: get_gridnum
         procedure, pass  , public  :: get_nt
         procedure, pass  , public  :: get_x
@@ -396,7 +396,7 @@ module ctlget
     end function includeLeap
 
 
-    function getEndian(self) result(output)
+    function get_endian(self) result(output)
         class(ctl), intent(inout) :: self
 
         character(8) :: output
@@ -408,7 +408,7 @@ module ctlget
 
         output = self%endian
 
-    end function getEndian
+    end function get_endian
 
 
     subroutine get_gridnum(self, nx, ny, nz)

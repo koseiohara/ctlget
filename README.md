@@ -35,7 +35,7 @@ make install
 - [isYrev](#yrev)
 - [isZrev](#zrev)
 - [includeLeap](#leap)
-- [getEndian](#endian)
+- [get_endian](#endian)
 - [get_gridnum](#gridnum)
 - [get_nt](#nt)
 - [get_x](#x)
@@ -122,9 +122,9 @@ function includeLeap(self) result(output)
 ```
 `output` is a logical value, `.TRUE.` if data include leap days.
 
-### getEndian<a id="endian"></a>
+### get_endian<a id="endian"></a>
 ```fortran
-function getEndian(self) result(output)
+function get_endian(self) result(output)
     class(ctl), intent(inout) :: self
     character(8) :: output
 ```
