@@ -48,6 +48,9 @@ module ctlget
         procedure, pass  , public  :: get_x
         procedure, pass  , public  :: get_y
         procedure, pass  , public  :: get_z
+        procedure, pass  , public  :: get_xinfo
+        procedure, pass  , public  :: get_yinfo
+        procedure, pass  , public  :: get_zinfo
         procedure, pass  , public  :: get_tini
         procedure, pass  , public  :: get_dt
         procedure, pass  , public  :: get_nvars
@@ -58,6 +61,7 @@ module ctlget
         procedure, nopass, private :: get_number_of_variables
         procedure, pass  , private :: get_n
         procedure, pass  , private :: get_coordinate
+        procedure, pass  , private :: get_axis_info
         procedure, nopass, private :: get_ctl_dir
         procedure, nopass, private :: skip_column
 
@@ -490,6 +494,69 @@ module ctlget
     end subroutine get_z
 
 
+    subroutine get_xinfo(self, xmin, dx, islinear)
+        class(ctl)  , intent(in)  :: self
+        real(real32), intent(out) :: xmin
+        real(real32), intent(out) :: dx
+        logical     , intent(out), optional :: islinear
+
+        character(8) :: method
+
+        call self%get_axis_info(self%xdef, &  !! IN
+                              & method   , &  !! OUT
+                              & xmin     , &  !! OUT
+                              & dx         )  !! OUT
+
+        if (present(islinear)) then
+            method = to_lower(method)
+            islinear = (trim(method) == 'linear')
+        endif
+
+    end subroutine get_xinfo
+
+
+    subroutine get_yinfo(self, ymin, dy, islinear)
+        class(ctl)  , intent(in)  :: self
+        real(real32), intent(out) :: ymin
+        real(real32), intent(out) :: dy
+        logical     , intent(out), optional :: islinear
+
+        character(8) :: method
+
+        call self%get_axis_info(self%ydef, &  !! IN
+                              & method   , &  !! OUT
+                              & ymin     , &  !! OUT
+                              & dy         )  !! OUT
+
+        if (present(islinear)) then
+            method = to_lower(method)
+            islinear = (trim(method) == 'linear')
+        endif
+
+    end subroutine get_yinfo
+
+
+    subroutine get_zinfo(self, zmin, dz, islinear)
+        class(ctl)  , intent(in)  :: self
+        real(real32), intent(out) :: zmin
+        real(real32), intent(out) :: dz
+        logical     , intent(out), optional :: islinear
+
+        character(8) :: method
+
+        call self%get_axis_info(self%zdef, &  !! IN
+                              & method   , &  !! OUT
+                              & zmin     , &  !! OUT
+                              & dz         )  !! OUT
+
+        if (present(islinear)) then
+            method = to_lower(method)
+            islinear = (trim(method) == 'linear')
+        endif
+
+    end subroutine get_zinfo
+
+
     subroutine get_tini(self, calendar)
         class(ctl), intent(in)  :: self
         integer   , intent(out) :: calendar(5)
@@ -820,6 +887,28 @@ module ctlget
         endif
 
     end subroutine get_coordinate
+
+
+    subroutine get_axis_info(self, line_number, method, minimum, delta)
+        class(ctl)  , intent(in)  :: self
+        integer     , intent(in)  :: line_number
+        character(*), intent(out) :: method
+        real(real32), intent(out) :: minimum
+        real(real32), intent(out) :: delta
+
+        character(string_max) :: line
+        integer      :: dummy
+
+        line = self%ctl_all(line_number)
+        line = adjustl(line(5:string_max))
+
+        read(line,*) dummy, method
+
+        if (to_lower(trim(method)) == 'linear') then
+            read(line,*) dummy, method, minimum, delta
+        endif
+
+    end subroutine get_axis_info
 
 
     subroutine get_ctl_dir(ctlname, ctldir)

@@ -21,6 +21,13 @@ program sample_ctlget
     real(real32), allocatable :: x(:)
     real(real32), allocatable :: y(:)
     real(real32), allocatable :: z(:)
+    real(real32)   :: xmin
+    real(real32)   :: dx
+    real(real32)   :: ymin
+    real(real32)   :: dy
+    real(real32)   :: zmin
+    real(real32)   :: dz
+    logical        :: islinear
     integer        :: initial_datetime(5)
     integer        :: dt
     character(2)   :: dt_unit
@@ -101,6 +108,45 @@ program sample_ctlget
     call input_ctl%get_z(z(1:nz))  !! OUT : x-coordinate
     write(*,'(A)') 'Result of get_z()'
     write(*,'(A,*(ES12.4,:,",  "))') 'Z = ', z(1:nz)
+
+    write(*,*)
+    call input_ctl%get_xinfo(xmin    , &  !! OUT
+                           & dx      , &  !! OUT
+                           & islinear  )  !! OUT
+    write(*,'(A)') 'Result of get_xinfo()'
+    write(*,'(A,ES12.4)') 'XMIN =', xmin
+    write(*,'(A,ES12.4)') 'DX   =', dx
+    if (islinear) then
+        write(*,'(A)') 'X-Axis is linear'
+    else
+        write(*,'(A)') 'X-Axis is not linear'
+    endif
+
+    write(*,*)
+    call input_ctl%get_yinfo(ymin    , &  !! OUT
+                           & dy      , &  !! OUT
+                           & islinear  )  !! OUT
+    write(*,'(A)') 'Result of get_yinfo()'
+    write(*,'(A,ES12.4)') 'YMIN =', ymin
+    write(*,'(A,ES12.4)') 'DY   =', dy
+    if (islinear) then
+        write(*,'(A)') 'Y-Axis is linear'
+    else
+        write(*,'(A)') 'Y-Axis is not linear'
+    endif
+
+    write(*,*)
+    call input_ctl%get_zinfo(zmin    , &  !! OUT
+                           & dz      , &  !! OUT
+                           & islinear  )  !! OUT
+    write(*,'(A)') 'Result of get_zinfo()'
+    write(*,'(A,ES12.4)') 'ZMIN =', zmin
+    write(*,'(A,ES12.4)') 'DZ   =', dz
+    if (islinear) then
+        write(*,'(A)') 'Z-Axis is linear'
+    else
+        write(*,'(A)') 'Z-Axis is not linear'
+    endif
 
     write(*,*)
     call input_ctl%get_tini(initial_datetime(1:5))  !! OUT : Date and time of the first record

@@ -41,6 +41,9 @@ make install
 - [get_x](#x)
 - [get_y](#y)
 - [get_z](#z)
+- [get_xinfo](#xinfo)
+- [get_yinfo](#yinfo)
+- [get_zinfo](#zinfo)
 - [get_tini](#tini)
 - [get_dt](#dt)
 - [get_nvars](#nvars)
@@ -171,6 +174,42 @@ subroutine get_z(self, output)
     real(real32), intent(out) :: output(:)
 ```
 `output` is the z-coordinate, its size is `nz` obtained by `get_gridnum()`
+
+### get_xinfo<a id="xinfo"></a>
+```fortran
+subroutine get_xinfo(self, xmin, dx, islinear)
+    class(ctl)  , intent(in)  :: self
+    real(real32), intent(out) :: xmin
+    real(real32), intent(out) :: dx
+    logical     , intent(out), optional :: islinear
+```
+`xmin` is the minimum value of xaxis.
+`dx` is the differences between adjacent coordinates.
+`islinear` is `.TRUE.` if x-axis is linear. If `islinear=.FALSE.`, `xmin` and `dx` are 0.
+
+### get_yinfo<a id="yinfo"></a>
+```fortran
+subroutine get_yinfo(self, ymin, dy, islinear)
+    class(ctl)  , intent(in)  :: self
+    real(real32), intent(out) :: ymin
+    real(real32), intent(out) :: dy
+    logical     , intent(out), optional :: islinear
+```
+`ymin` is the minimum value of yaxis.
+`dy` is the differences between adjacent coordinates.
+`islinear` is `.TRUE.` if y-axis is linear. If `islinear=.FALSE.`, `ymin` and `dy` are 0.
+
+### get_zinfo<a id="zinfo"></a>
+```fortran
+subroutine get_zinfo(self, zmin, dz, islinear)
+    class(ctl)  , intent(in)  :: self
+    real(real32), intent(out) :: zmin
+    real(real32), intent(out) :: dz
+    logical     , intent(out), optional :: islinear
+```
+`zmin` is the minimum value of zaxis.
+`dz` is the differences between adjacent coordinates.
+`islinear` is `.TRUE.` if z-axis is linear. If `islinear=.FALSE.`, `zmin` and `dz` are 0.
 
 ### get_tini<a id="tini"></a>
 ```fortran
