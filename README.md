@@ -124,11 +124,11 @@ function includeLeap(self) result(output)
 
 ### get_endian<a id="endian"></a>
 ```fortran
-function get_endian(self) result(output)
-    class(ctl), intent(inout) :: self
-    character(8) :: output
+subroutine get_endian(self, output)
+    class(ctl)  , intent(inout) :: self
+    character(*), intent(out)   :: output
 ```
-`output` is endian of data, `"little"`, `"big"`, or `"native"`.
+`output` is the endian of data, `"little"`, `"big"`, or `"native"`.
 
 ### get_gridnum<a id="gridnum"></a>
 ```fortran

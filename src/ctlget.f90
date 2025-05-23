@@ -396,10 +396,10 @@ module ctlget
     end function includeLeap
 
 
-    function get_endian(self) result(output)
-        class(ctl), intent(inout) :: self
+    subroutine get_endian(self, output)
+        class(ctl) , intent(inout) :: self
+        character(*), intent(out)  :: output
 
-        character(8) :: output
         character(1) :: dummy
 
         if (.NOT. self%option_read) then
@@ -408,7 +408,7 @@ module ctlget
 
         output = self%endian
 
-    end function get_endian
+    end subroutine get_endian
 
 
     subroutine get_gridnum(self, nx, ny, nz)
