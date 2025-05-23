@@ -69,7 +69,7 @@ program sample_ctlget
         write(*,'(A)') 'Data do not include leap days'
     endif
 
-    endian = input_ctl%get_endian()
+    call input_ctl%get_endian(endian)
     write(*,'(A)') 'Data are written in ' // trim(endian) // '-endian'
 
     write(*,*)
