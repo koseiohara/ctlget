@@ -118,12 +118,15 @@ module ctlget
 
         do i = 1, lmax
             read(unit,'(A)',iostat=EOF) output%ctl_all(i)
+            lines = i
             ! end the loop when EOF was found
             if (EOF /= 0) then
-                lines = i - 1
+                lines = lines - 1
                 exit
             endif
         enddo
+
+        close(unit)
 
         ! delete spaces from left of each line
         output%ctl_all(1:lines) = adjustl(output%ctl_all(1:lines))
