@@ -9,7 +9,7 @@ module ctlget
     public :: ctl
 
 
-    integer, parameter :: string_max = 512
+    integer, parameter :: string_max = 2048
 
 
     type ctl
@@ -667,12 +667,6 @@ module ctlget
                            & self%lines                , &
                            & self%ctl_all(1:self%lines), &
                            & output                      )
-
-        if (output == 0) then
-            write(0,'(A)') '<ERROR STOP>'
-            write(0,'(A)') trim(var) // ' was not found in ' // trim(self%ctlname)
-            ERROR STOP
-        endif
 
         output = output - self%vars
 
