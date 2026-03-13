@@ -465,8 +465,8 @@ module ctlget
 
 
     subroutine get_y(self, output)
-        class(ctl)  , intent(in)  :: self
-        real(real32), intent(out) :: output(:)
+        class(ctl)  , intent(inout) :: self
+        real(real32), intent(out)   :: output(:)
 
         integer :: n
 
@@ -484,8 +484,8 @@ module ctlget
 
 
     subroutine get_z(self, output)
-        class(ctl)  , intent(in)  :: self
-        real(real32), intent(out) :: output(:)
+        class(ctl)  , intent(inout) :: self
+        real(real32), intent(out)   :: output(:)
 
         integer :: n
 
