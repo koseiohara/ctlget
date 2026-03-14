@@ -54,13 +54,14 @@ make install
 
 ### ctlget<a id="init"></a>
 ```fortran
-function init(ctlname, linemax) result(output)
+function init(ctlname, linemax, columnmax) result(output)
     character(*), intent(in) :: ctlname
-    integer     , intent(in), optional :: linemax     ! DEFAULT : 100
+    integer     , intent(in), optional :: linemax       ! DEFAULT : 100
+    integer     , intent(in), optional :: columnmax     ! DEFAULT : 256
 ```
 Constructor of this class.
 `ctlname` is the name of the target control file.
-`linemax` is the maximum allowable number of lines in the file (default : 100).
+`linemax` and `columnmax` is the maximum allowable number of lines/columns in the file, respectively (default : 100 and 256).
 For example, if `linemax=100` is substituted, lines after line 100 will not be read.  
 Although the name of function is `init`, you can call this routine by `ctlget` like
 ```fortran
