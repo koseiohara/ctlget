@@ -9,14 +9,12 @@ module ctlget
     public :: ctl
 
 
-    integer, parameter :: string_max = 2048
-
-
     type ctl
         private
         character(256) :: ctlname                               ! File name of the control file
-        character(string_max), allocatable :: ctl_all(:)        ! All lines of control file
+        character(len=:), allocatable :: ctl_all(:)             ! All lines of control file
         integer      :: number_of_variables                     ! Number of variables defined in the file
+        integer      :: cmax                                    ! Acceptable maximum length of each line
         integer      :: lines                                   ! Number of lines of the control file
         logical      :: option_read                             ! Flag whether option has already read
         logical      :: yrev                                    ! wheter data is yrev
@@ -57,7 +55,7 @@ module ctlget
         procedure, pass  , public  :: get_var_idx
         procedure, pass  , public  :: get_var_name
         procedure, pass  , public  :: get_var_description
-        procedure, nopass, private :: get_line_number
+        procedure, pass  , private :: get_line_number
         procedure, nopass, private :: get_number_of_variables
         procedure, pass  , private :: get_n
         procedure, pass  , private :: get_coordinate
@@ -78,9 +76,10 @@ module ctlget
 
 
     ! Constructor
-    function init(ctlname, linemax) result(output)
+    function init(ctlname, linemax, columnmax) result(output)
         character(*), intent(in) :: ctlname
-        integer     , intent(in), optional :: linemax     ! DEFAULT : 100
+        integer     , intent(in), optional :: linemax       ! DEFAULT : 100
+        integer     , intent(in), optional :: columnmax     ! DEFAULT : 256
 
         type(ctl) :: output
 
@@ -105,7 +104,19 @@ module ctlget
             lmax = 100
         endif
 
-        allocate(output%ctl_all(lmax))
+        if (present(columnmax)) then
+            if (columnmax <= 0) then
+                write(0,'(A)') '<ERROR STOP>'
+                write(0,'(A)') 'Invalid columnmax to read ' // trim(ctlname)
+                write(0,'(A,I0)') 'Specified : ', columnmax
+                ERROR STOP
+            endif
+            output % cmax = columnmax
+        else
+            output % cmax = 256
+        endif
+
+        allocate(character(output % cmax) :: output%ctl_all(lmax))
 
         open(NEWUNIT=unit   , &
            & FILE   =ctlname, &
@@ -135,50 +146,50 @@ module ctlget
         ! delete spaces from left of each line
         output%ctl_all(1:lines) = adjustl(output%ctl_all(1:lines))
 
-        call get_line_number(FLAG   ='dset'                 , &  !! IN
-                           & LINES  =lines                  , &  !! IN
-                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                           & LINE   =output%dset              )  !! OUT
+        call output % get_line_number(FLAG   ='dset'                 , &  !! IN
+                                    & LINES  =lines                  , &  !! IN
+                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & LINE   =output%dset              )  !! OUT
 
-        call get_line_number(FLAG   ='title'                , &  !! IN
-                           & LINES  =lines                  , &  !! IN
-                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                           & LINE   =output%title             )  !! OUT
+        call output % get_line_number(FLAG   ='title'                , &  !! IN
+                                    & LINES  =lines                  , &  !! IN
+                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & LINE   =output%title             )  !! OUT
 
-        call get_line_number(FLAG   ='undef'                , &  !! IN
-                           & LINES  =lines                  , &  !! IN
-                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                           & LINE   =output%undef             )  !! OUT
+        call output % get_line_number(FLAG   ='undef'                , &  !! IN
+                                    & LINES  =lines                  , &  !! IN
+                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & LINE   =output%undef             )  !! OUT
 
-        call get_line_number(FLAG   ='options'              , &  !! IN
-                           & LINES  =lines                  , &  !! IN
-                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                           & LINE   =output%options           )  !! OUT
+        call output % get_line_number(FLAG   ='options'              , &  !! IN
+                                    & LINES  =lines                  , &  !! IN
+                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & LINE   =output%options           )  !! OUT
 
-        call get_line_number(FLAG   ='xdef'                 , &  !! IN
-                           & LINES  =lines                  , &  !! IN
-                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                           & LINE   =output%xdef              )  !! OUT
+        call output % get_line_number(FLAG   ='xdef'                 , &  !! IN
+                                    & LINES  =lines                  , &  !! IN
+                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & LINE   =output%xdef              )  !! OUT
 
-        call get_line_number(FLAG   ='ydef'                 , &  !! IN
-                           & LINES  =lines                  , &  !! IN
-                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                           & LINE   =output%ydef              )  !! OUT
+        call output % get_line_number(FLAG   ='ydef'                 , &  !! IN
+                                    & LINES  =lines                  , &  !! IN
+                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & LINE   =output%ydef              )  !! OUT
 
-        call get_line_number(FLAG   ='zdef'                 , &  !! IN
-                           & LINES  =lines                  , &  !! IN
-                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                           & LINE   =output%zdef              )  !! OUT
+        call output % get_line_number(FLAG   ='zdef'                 , &  !! IN
+                                    & LINES  =lines                  , &  !! IN
+                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & LINE   =output%zdef              )  !! OUT
 
-        call get_line_number(FLAG   ='tdef'                 , &  !! IN
-                           & LINES  =lines                  , &  !! IN
-                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                           & LINE   =output%tdef              )  !! OUT
+        call output % get_line_number(FLAG   ='tdef'                 , &  !! IN
+                                    & LINES  =lines                  , &  !! IN
+                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & LINE   =output%tdef              )  !! OUT
 
-        call get_line_number(FLAG   ='vars'                 , &  !! IN
-                           & LINES  =lines                  , &  !! IN
-                           & CTL_ALL=output%ctl_all(1:lines), &  !! IN
-                           & LINE   =output%vars              )  !! OUT
+        call output % get_line_number(FLAG   ='vars'                 , &  !! IN
+                                    & LINES  =lines                  , &  !! IN
+                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & LINE   =output%vars              )  !! OUT
 
         call get_number_of_variables(output)  !! INOUT
 
@@ -208,20 +219,20 @@ module ctlget
         class(ctl)  , intent(in)  :: self
         character(*), intent(out) :: output
 
-        character(string_max) :: line
-        character(256)        :: work_filename
-        character(256)        :: ctl_dir
+        character(self%cmax) :: line
+        character(256)       :: work_filename
+        character(256)       :: ctl_dir
         integer :: filename_end
 
         ! get the dset line
         line = trim(self%ctl_all(self%dset))
 
         ! trimming
-        line          = adjustl(line(5:string_max))
-        filename_end  = index(line(1:string_max), ' ') - 1
+        line          = adjustl(line(5:self%cmax))
+        filename_end  = index(line(1:self%cmax), ' ') - 1
         ! if space is not found, the last character is selected
         if (filename_end == -1) then
-            filename_end = string_max
+            filename_end = self%cmax
         endif
         work_filename = line(1:filename_end)
 
@@ -248,18 +259,18 @@ module ctlget
         class(ctl), intent(in)    :: self
         character(*), intent(out) :: output
 
-        character(string_max) :: line
+        character(self%cmax) :: line
         integer :: title_end
 
         ! get the title line
         line = trim(self%ctl_all(self%title))
 
         ! trimming
-        line      = adjustl(line(6:string_max))
-        title_end = index(line(1:string_max), '*') - 1
+        line      = adjustl(line(6:self%cmax))
+        title_end = index(line(1:self%cmax), '*') - 1
         ! if space is not found, the last character is selected
         if (title_end == -1) then
-            title_end = string_max
+            title_end = self%cmax
         endif
         output = trim(line(1:title_end))
 
@@ -271,7 +282,7 @@ module ctlget
         real(real32), intent(out), optional :: undef
         character(*), intent(out), optional :: undef_char
 
-        character(string_max) :: line
+        character(self%cmax) :: line
         character(64) :: work_undef
         integer :: undef_end
 
@@ -279,11 +290,11 @@ module ctlget
         line = trim(self%ctl_all(self%undef))
 
         ! trimming
-        line = adjustl(line(6:string_max))
-        undef_end = index(line(1:string_max), ' ') - 1
+        line = adjustl(line(6:self%cmax))
+        undef_end = index(line(1:self%cmax), ' ') - 1
         ! if space is not found, the last character is selected
         if (undef_end == -1) then
-            undef_end = string_max
+            undef_end = self%cmax
         endif
         work_undef = trim(line(1:undef_end))
         
@@ -304,18 +315,18 @@ module ctlget
         class(ctl)  , intent(inout) :: self
         character(*), intent(out)   :: output
 
-        character(string_max) :: line
-        character(string_max) :: option_cp
+        character(self%cmax) :: line
+        character(self%cmax) :: option_cp
         integer :: option_end
 
         line = trim(self%ctl_all(self%options))
 
         ! trimming
-        line = adjustl(line(8:string_max))
-        option_end = index(line(1:string_max), '*') - 1
+        line = adjustl(line(8:self%cmax))
+        option_end = index(line(1:self%cmax), '*') - 1
         ! if space is not found, the last character is selected
         if (option_end == -1) then
-            option_end = string_max
+            option_end = self%cmax
         endif
 
         output = trim(line(1:option_end))
@@ -569,7 +580,7 @@ module ctlget
         class(ctl), intent(in)  :: self
         integer   , intent(out) :: calendar(5)
 
-        character(string_max) :: line
+        character(self%cmax) :: line
         character(16) :: cal_str
         character(4)  :: month_list(12) = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
         integer :: cal_len
@@ -635,9 +646,9 @@ module ctlget
         integer     , intent(out) :: dt
         character(*), intent(out), optional :: unit
 
-        character(string_max) :: line
-        character(4)          :: dt_c
-        integer               :: dt_len
+        character(self%cmax) :: line
+        character(4)         :: dt_c
+        integer              :: dt_len
 
         ! get delta_t column in lower cases
         line = self%ctl_all(self%tdef)
@@ -671,10 +682,10 @@ module ctlget
         integer     , intent(out) :: output
 
         ! get the line $var is defined in
-        call get_line_number(var                       , &
-                           & self%lines                , &
-                           & self%ctl_all(1:self%lines), &
-                           & output                      )
+        call self % get_line_number(var                       , &
+                                  & self%lines                , &
+                                  & self%ctl_all(1:self%lines), &
+                                  & output                      )
 
         output = output - self%vars
 
@@ -686,8 +697,8 @@ module ctlget
         integer     , intent(in)  :: idx
         character(*), intent(out) :: output
 
-        character(string_max) :: line
-        integer               :: var_end
+        character(self%cmax) :: line
+        integer              :: var_end
 
         if (idx > self%number_of_variables) then
             write(0,'(A)') '<ERROR STOP>'
@@ -711,7 +722,7 @@ module ctlget
         integer     , intent(in), optional :: idx
         character(*), intent(in), optional :: var
 
-        character(string_max) :: line
+        character(self%cmax) :: line
         integer :: idx_cp
         integer :: where_space
 
@@ -727,10 +738,10 @@ module ctlget
             idx_cp = idx
         else if (present(var)) then
             ! get the line $var is defined in
-            call get_line_number(var                       , &
-                               & self%lines                , &
-                               & self%ctl_all(1:self%lines), &
-                               & idx_cp                      )
+            call self % get_line_number(var                       , &
+                                      & self%lines                , &
+                                      & self%ctl_all(1:self%lines), &
+                                      & idx_cp                      )
 
             if (idx_cp == 0) then
                 write(0,'(A)') '<ERROR STOP>'
@@ -749,28 +760,29 @@ module ctlget
 
         ! delete the variable-name column
         where_space = index(line, ' ')
-        line = adjustl(line(where_space+1:string_max))
+        line = adjustl(line(where_space+1:self%cmax))
         ! delete the number-of-layers column
         where_space = index(line, ' ')
-        line = adjustl(line(where_space+1:string_max))
+        line = adjustl(line(where_space+1:self%cmax))
         ! delete the unit column
         where_space = index(line, ' ')
-        line = adjustl(line(where_space+1:string_max))
+        line = adjustl(line(where_space+1:self%cmax))
 
         output = trim(line)
 
     end subroutine get_var_description
 
 
-    subroutine get_line_number(flag, lines, ctl_all, line)
+    subroutine get_line_number(self, flag, lines, ctl_all, line)
+        class(ctl)  , intent(in)  :: self
         character(*), intent(in)  :: flag
         integer     , intent(in)  :: lines
         character(*), intent(in)  :: ctl_all(lines)
         integer     , intent(out) :: line
 
-        character(string_max) :: string
-        character(64)         :: line_flag
-        character(64)         :: flag_lower
+        character(self%cmax) :: string
+        character(64)        :: line_flag
+        character(64)        :: flag_lower
         integer :: where_space
         integer :: i
 
@@ -808,17 +820,17 @@ module ctlget
     subroutine get_number_of_variables(self)
         class(ctl), intent(inout) :: self
 
-        character(string_max) :: line
+        character(self%cmax) :: line
         integer :: n_end
 
         line = self%ctl_all(self%vars)
 
         ! trimming
-        line = adjustl(line(5:string_max))
-        n_end = index(line(1:string_max), '*') - 1
+        line = adjustl(line(5:self%cmax))
+        n_end = index(line(1:self%cmax), '*') - 1
         ! if space is not found, the last character is selected
         if (n_end == -1) then
-            n_end = string_max
+            n_end = self%cmax
         endif
         line = trim(line(1:n_end))
 
@@ -832,18 +844,18 @@ module ctlget
         integer   , intent(in)  :: line_number
         integer   , intent(out) :: output
 
-        character(string_max) :: line
-        character(16)         :: work_n
+        character(self%cmax) :: line
+        character(16)        :: work_n
         integer :: n_end
 
         line = trim(self%ctl_all(line_number))
 
         ! trimming
-        line = adjustl(line(5:string_max))
-        n_end = index(line(1:string_max), ' ') - 1
+        line = adjustl(line(5:self%cmax))
+        n_end = index(line(1:self%cmax), ' ') - 1
         ! if space is not found, the last character is selected
         if (n_end == -1) then
-            n_end = string_max
+            n_end = self%cmax
         endif
         work_n = trim(line(1:n_end))
 
@@ -858,18 +870,18 @@ module ctlget
         integer     , intent(in)  :: n
         real(real32), intent(out) :: output(n)
 
-        character(string_max)   :: line
-        character(string_max*2) :: line_levels
-        character(8)            :: specify_method
-        character(8)            :: n_c
-        real(real32)            :: min
-        real(real32)            :: delta
+        character(self%cmax)   :: line
+        character(self%cmax*2) :: line_levels
+        character(8)           :: specify_method
+        character(8)           :: n_c
+        real(real32)           :: min
+        real(real32)           :: delta
         integer :: i
         integer :: where_method
         integer :: levels_start
 
         line = self%ctl_all(line_number)
-        line = adjustl(line(5:string_max))
+        line = adjustl(line(5:self%cmax))
 
         read(line,*) n_c, specify_method
         if (to_lower(trim(specify_method)) == 'linear') then
@@ -898,11 +910,11 @@ module ctlget
         real(real32), intent(out) :: minimum
         real(real32), intent(out) :: delta
 
-        character(string_max) :: line
+        character(self%cmax) :: line
         integer      :: dummy
 
         line = self%ctl_all(line_number)
-        line = adjustl(line(5:string_max))
+        line = adjustl(line(5:self%cmax))
 
         read(line,*) dummy, method
 
