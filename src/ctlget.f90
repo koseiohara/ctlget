@@ -1,6 +1,6 @@
 module ctlget
 
-    use, intrinsic :: iso_fortran_env, only : real32
+    use, intrinsic :: iso_fortran_env, only : real32, real64
     use caseconverter, only : to_lower
 
     implicit none
@@ -35,7 +35,6 @@ module ctlget
 
         procedure, pass  , public  :: get_dset
         procedure, pass  , public  :: get_title
-        procedure, pass  , public  :: get_undef
         procedure, pass  , public  :: get_options
         procedure, pass  , public  :: isYrev
         procedure, pass  , public  :: isZrev
@@ -43,12 +42,6 @@ module ctlget
         procedure, pass  , public  :: get_endian
         procedure, pass  , public  :: get_gridnum
         procedure, pass  , public  :: get_nt
-        procedure, pass  , public  :: get_x
-        procedure, pass  , public  :: get_y
-        procedure, pass  , public  :: get_z
-        procedure, pass  , public  :: get_xinfo
-        procedure, pass  , public  :: get_yinfo
-        procedure, pass  , public  :: get_zinfo
         procedure, pass  , public  :: get_tini
         procedure, pass  , public  :: get_dt
         procedure, pass  , public  :: get_nvars
@@ -58,11 +51,37 @@ module ctlget
         procedure, pass  , private :: get_line_number
         procedure, nopass, private :: get_number_of_variables
         procedure, pass  , private :: get_n
-        procedure, pass  , private :: get_coordinate
-        procedure, pass  , private :: get_axis_info
         procedure, nopass, private :: get_ctl_dir
         procedure, nopass, private :: skip_column
 
+        generic, public :: get_undef      => get_undef_s, get_undef_d
+        generic, public :: get_x          => get_x_s, get_x_d
+        generic, public :: get_y          => get_y_s, get_y_d
+        generic, public :: get_z          => get_z_s, get_z_d
+        generic, public :: get_coordinate => get_coordinate_s, get_coordinate_d
+        generic, public :: get_xinfo      => get_xinfo_s, get_xinfo_d
+        generic, public :: get_yinfo      => get_yinfo_s, get_yinfo_d
+        generic, public :: get_zinfo      => get_zinfo_s, get_zinfo_d
+        generic, public :: get_axis_info  => get_axis_info_s , get_axis_info_d
+
+        procedure, pass  , public  :: get_undef_s
+        procedure, pass  , public  :: get_undef_d
+        procedure, pass  , public  :: get_x_s
+        procedure, pass  , public  :: get_x_d
+        procedure, pass  , public  :: get_y_s
+        procedure, pass  , public  :: get_y_d
+        procedure, pass  , public  :: get_z_s
+        procedure, pass  , public  :: get_z_d
+        procedure, pass  , private :: get_coordinate_s
+        procedure, pass  , private :: get_coordinate_d
+        procedure, pass  , public  :: get_xinfo_s
+        procedure, pass  , public  :: get_xinfo_d
+        procedure, pass  , public  :: get_yinfo_s
+        procedure, pass  , public  :: get_yinfo_d
+        procedure, pass  , public  :: get_zinfo_s
+        procedure, pass  , public  :: get_zinfo_d
+        procedure, pass  , private :: get_axis_info_s
+        procedure, pass  , private :: get_axis_info_d
     end type ctl
 
 
@@ -277,9 +296,10 @@ module ctlget
     end subroutine get_title
 
 
-    subroutine get_undef(self, undef, undef_char)
-        class(ctl), intent(in) :: self
-        real(real32), intent(out), optional :: undef
+    subroutine get_undef_s(self, undef, undef_char)
+        integer, parameter :: lrk=real32
+        class(ctl)  , intent(in)  :: self
+        real(lrk)   , intent(out) :: undef
         character(*), intent(out), optional :: undef_char
 
         character(self%cmax) :: line
@@ -299,16 +319,47 @@ module ctlget
         work_undef = trim(line(1:undef_end))
         
         ! get undef in real32
-        if (present(undef)) then
-            read(work_undef,*) undef
-        endif
+        read(work_undef,*) undef
 
         ! get undef in char
         if (present(undef_char)) then
             undef_char = trim(work_undef)
         endif
 
-    end subroutine get_undef
+    end subroutine get_undef_s
+
+
+    subroutine get_undef_d(self, undef, undef_char)
+        integer, parameter :: lrk=real64
+        class(ctl)  , intent(in)  :: self
+        real(lrk)   , intent(out) :: undef
+        character(*), intent(out), optional :: undef_char
+
+        character(self%cmax) :: line
+        character(64) :: work_undef
+        integer :: undef_end
+
+        ! get the undef line
+        line = trim(self%ctl_all(self%undef))
+
+        ! trimming
+        line = adjustl(line(6:self%cmax))
+        undef_end = index(line(1:self%cmax), ' ') - 1
+        ! if space is not found, the last character is selected
+        if (undef_end == -1) then
+            undef_end = self%cmax
+        endif
+        work_undef = trim(line(1:undef_end))
+        
+        ! get undef in real64
+        read(work_undef,*) undef
+
+        ! get undef in char
+        if (present(undef_char)) then
+            undef_char = trim(work_undef)
+        endif
+
+    end subroutine get_undef_d
 
 
     subroutine get_options(self, output)
@@ -460,7 +511,7 @@ module ctlget
     end subroutine get_nt
 
 
-    subroutine get_x(self, output)
+    subroutine get_x_s(self, output)
         class(ctl)  , intent(in)  :: self
         real(real32), intent(out) :: output(:)
 
@@ -472,10 +523,25 @@ module ctlget
                                & n          , &  !! IN
                                & output(1:n)  )  !! OUT
 
-    end subroutine get_x
+    end subroutine get_x_s
 
 
-    subroutine get_y(self, output)
+    subroutine get_x_d(self, output)
+        class(ctl)  , intent(in)  :: self
+        real(real64), intent(out) :: output(:)
+
+        integer :: n
+
+        n = size(output)
+
+        call self%get_coordinate(self%xdef  , &  !! IN
+                               & n          , &  !! IN
+                               & output(1:n)  )  !! OUT
+
+    end subroutine get_x_d
+
+
+    subroutine get_y_s(self, output)
         class(ctl)  , intent(inout) :: self
         real(real32), intent(out)   :: output(:)
 
@@ -491,10 +557,29 @@ module ctlget
             output(1:n) = output(n:1:-1)
         endif
 
-    end subroutine get_y
+    end subroutine get_y_s
 
 
-    subroutine get_z(self, output)
+    subroutine get_y_d(self, output)
+        class(ctl)  , intent(inout) :: self
+        real(real64), intent(out)   :: output(:)
+
+        integer :: n
+
+        n = size(output)
+
+        call self%get_coordinate(self%ydef  , &  !! IN
+                               & n          , &  !! IN
+                               & output(1:n)  )  !! OUT
+
+        if (self.isYrev()) then
+            output(1:n) = output(n:1:-1)
+        endif
+
+    end subroutine get_y_d
+
+
+    subroutine get_z_s(self, output)
         class(ctl)  , intent(inout) :: self
         real(real32), intent(out)   :: output(:)
 
@@ -510,14 +595,34 @@ module ctlget
             output(1:n) = output(n:1:-1)
         endif
 
-    end subroutine get_z
+    end subroutine get_z_s
 
 
-    subroutine get_xinfo(self, xmin, dx, islinear)
-        class(ctl)  , intent(in)  :: self
-        real(real32), intent(out) :: xmin
-        real(real32), intent(out) :: dx
-        logical     , intent(out), optional :: islinear
+    subroutine get_z_d(self, output)
+        class(ctl)  , intent(inout) :: self
+        real(real64), intent(out)   :: output(:)
+
+        integer :: n
+
+        n = size(output)
+
+        call self%get_coordinate(self%zdef  , &  !! IN
+                               & n          , &  !! IN
+                               & output(1:n)  )  !! OUT
+
+        if (self.isZrev()) then
+            output(1:n) = output(n:1:-1)
+        endif
+
+    end subroutine get_z_d
+
+
+    subroutine get_xinfo_s(self, xmin, dx, islinear)
+        integer, parameter :: lrk=real32
+        class(ctl), intent(in)  :: self
+        real(lrk) , intent(out) :: xmin
+        real(lrk) , intent(out) :: dx
+        logical   , intent(out), optional :: islinear
 
         character(8) :: method
 
@@ -531,14 +636,37 @@ module ctlget
             islinear = (trim(method) == 'linear')
         endif
 
-    end subroutine get_xinfo
+    end subroutine get_xinfo_s
 
 
-    subroutine get_yinfo(self, ymin, dy, islinear)
-        class(ctl)  , intent(in)  :: self
-        real(real32), intent(out) :: ymin
-        real(real32), intent(out) :: dy
-        logical     , intent(out), optional :: islinear
+    subroutine get_xinfo_d(self, xmin, dx, islinear)
+        integer, parameter :: lrk=real64
+        class(ctl), intent(in)  :: self
+        real(lrk) , intent(out) :: xmin
+        real(lrk) , intent(out) :: dx
+        logical   , intent(out), optional :: islinear
+
+        character(8) :: method
+
+        call self%get_axis_info(self%xdef, &  !! IN
+                              & method   , &  !! OUT
+                              & xmin     , &  !! OUT
+                              & dx         )  !! OUT
+
+        if (present(islinear)) then
+            method = to_lower(method)
+            islinear = (trim(method) == 'linear')
+        endif
+
+    end subroutine get_xinfo_d
+
+
+    subroutine get_yinfo_s(self, ymin, dy, islinear)
+        integer, parameter :: lrk=real32
+        class(ctl), intent(in)  :: self
+        real(lrk) , intent(out) :: ymin
+        real(lrk) , intent(out) :: dy
+        logical   , intent(out), optional :: islinear
 
         character(8) :: method
 
@@ -552,14 +680,37 @@ module ctlget
             islinear = (trim(method) == 'linear')
         endif
 
-    end subroutine get_yinfo
+    end subroutine get_yinfo_s
 
 
-    subroutine get_zinfo(self, zmin, dz, islinear)
-        class(ctl)  , intent(in)  :: self
-        real(real32), intent(out) :: zmin
-        real(real32), intent(out) :: dz
-        logical     , intent(out), optional :: islinear
+    subroutine get_yinfo_d(self, ymin, dy, islinear)
+        integer, parameter :: lrk=real64
+        class(ctl), intent(in)  :: self
+        real(lrk) , intent(out) :: ymin
+        real(lrk) , intent(out) :: dy
+        logical   , intent(out), optional :: islinear
+
+        character(8) :: method
+
+        call self%get_axis_info(self%ydef, &  !! IN
+                              & method   , &  !! OUT
+                              & ymin     , &  !! OUT
+                              & dy         )  !! OUT
+
+        if (present(islinear)) then
+            method = to_lower(method)
+            islinear = (trim(method) == 'linear')
+        endif
+
+    end subroutine get_yinfo_d
+
+
+    subroutine get_zinfo_s(self, zmin, dz, islinear)
+        integer, parameter :: lrk=real32
+        class(ctl), intent(in)  :: self
+        real(lrk) , intent(out) :: zmin
+        real(lrk) , intent(out) :: dz
+        logical   , intent(out), optional :: islinear
 
         character(8) :: method
 
@@ -573,7 +724,29 @@ module ctlget
             islinear = (trim(method) == 'linear')
         endif
 
-    end subroutine get_zinfo
+    end subroutine get_zinfo_s
+
+
+    subroutine get_zinfo_d(self, zmin, dz, islinear)
+        integer, parameter :: lrk=real64
+        class(ctl), intent(in)  :: self
+        real(lrk) , intent(out) :: zmin
+        real(lrk) , intent(out) :: dz
+        logical   , intent(out), optional :: islinear
+
+        character(8) :: method
+
+        call self%get_axis_info(self%zdef, &  !! IN
+                              & method   , &  !! OUT
+                              & zmin     , &  !! OUT
+                              & dz         )  !! OUT
+
+        if (present(islinear)) then
+            method = to_lower(method)
+            islinear = (trim(method) == 'linear')
+        endif
+
+    end subroutine get_zinfo_d
 
 
     subroutine get_tini(self, calendar)
@@ -864,18 +1037,19 @@ module ctlget
     end subroutine get_n
 
 
-    subroutine get_coordinate(self, line_number, n, output)
-        class(ctl)  , intent(in)  :: self
-        integer     , intent(in)  :: line_number
-        integer     , intent(in)  :: n
-        real(real32), intent(out) :: output(n)
+    subroutine get_coordinate_s(self, line_number, n, output)
+        integer, parameter :: lrk=real32
+        class(ctl), intent(in)  :: self
+        integer   , intent(in)  :: line_number
+        integer   , intent(in)  :: n
+        real(lrk) , intent(out) :: output(n)
 
         character(self%cmax)   :: line
         character(self%cmax*2) :: line_levels
         character(8)           :: specify_method
         character(8)           :: n_c
-        real(real32)           :: min
-        real(real32)           :: delta
+        real(lrk)              :: min
+        real(lrk)              :: delta
         integer :: i
         integer :: where_method
         integer :: levels_start
@@ -887,7 +1061,7 @@ module ctlget
         if (to_lower(trim(specify_method)) == 'linear') then
             ! if coordinate is 'linear', compute it
             read(line,*) n_c, specify_method, min, delta
-            output(1:n) = [(min+delta*real(i, kind=real32), i = 0, n-1)]
+            output(1:n) = [(min+delta*real(i, kind=lrk), i = 0, n-1)]
             return
         else
             ! if coordinate is 'levels', concatenate def and the next line and get $n numbers of levels
@@ -900,15 +1074,56 @@ module ctlget
             return
         endif
 
-    end subroutine get_coordinate
+    end subroutine get_coordinate_s
 
 
-    subroutine get_axis_info(self, line_number, method, minimum, delta)
+    subroutine get_coordinate_d(self, line_number, n, output)
+        integer, parameter :: lrk=real64
+        class(ctl), intent(in)  :: self
+        integer   , intent(in)  :: line_number
+        integer   , intent(in)  :: n
+        real(lrk) , intent(out) :: output(n)
+
+        character(self%cmax)   :: line
+        character(self%cmax*2) :: line_levels
+        character(8)           :: specify_method
+        character(8)           :: n_c
+        real(lrk)              :: min
+        real(lrk)              :: delta
+        integer :: i
+        integer :: where_method
+        integer :: levels_start
+
+        line = self%ctl_all(line_number)
+        line = adjustl(line(5:self%cmax))
+
+        read(line,*) n_c, specify_method
+        if (to_lower(trim(specify_method)) == 'linear') then
+            ! if coordinate is 'linear', compute it
+            read(line,*) n_c, specify_method, min, delta
+            output(1:n) = [(min+delta*real(i, kind=lrk), i = 0, n-1)]
+            return
+        else
+            ! if coordinate is 'levels', concatenate def and the next line and get $n numbers of levels
+            where_method = index(to_lower(line), 'levels')
+            levels_start = where_method + 6
+            line_levels = trim(line) // ' ' // trim(self%ctl_all(line_number+1))
+            line_levels = line_levels(levels_start:)
+
+            read(line_levels,*) output(1:n)
+            return
+        endif
+
+    end subroutine get_coordinate_d
+
+
+    subroutine get_axis_info_s(self, line_number, method, minimum, delta)
+        integer, parameter :: lrk=real32
         class(ctl)  , intent(in)  :: self
         integer     , intent(in)  :: line_number
         character(*), intent(out) :: method
-        real(real32), intent(out) :: minimum
-        real(real32), intent(out) :: delta
+        real(lrk)   , intent(out) :: minimum
+        real(lrk)   , intent(out) :: delta
 
         character(self%cmax) :: line
         integer      :: dummy
@@ -922,7 +1137,30 @@ module ctlget
             read(line,*) dummy, method, minimum, delta
         endif
 
-    end subroutine get_axis_info
+    end subroutine get_axis_info_s
+
+
+    subroutine get_axis_info_d(self, line_number, method, minimum, delta)
+        integer, parameter :: lrk=real64
+        class(ctl)  , intent(in)  :: self
+        integer     , intent(in)  :: line_number
+        character(*), intent(out) :: method
+        real(lrk)   , intent(out) :: minimum
+        real(lrk)   , intent(out) :: delta
+
+        character(self%cmax) :: line
+        integer      :: dummy
+
+        line = self%ctl_all(line_number)
+        line = adjustl(line(5:self%cmax))
+
+        read(line,*) dummy, method
+
+        if (to_lower(trim(method)) == 'linear') then
+            read(line,*) dummy, method, minimum, delta
+        endif
+
+    end subroutine get_axis_info_d
 
 
     subroutine get_ctl_dir(ctlname, ctldir)
