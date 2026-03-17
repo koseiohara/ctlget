@@ -163,16 +163,16 @@ subroutine get_x(self, output)
 ### get_y<a id="y"></a>
 ```fortran
 subroutine get_y(self, output)
-    class(ctl)  , intent(in)  :: self
-    real(real32), intent(out) :: output(:)
+    class(ctl)  , intent(inout) :: self
+    real(real32), intent(out)   :: output(:)
 ```
 `output` is the y-coordinate, its size is `ny` obtained by `get_gridnum()`
 
 ### get_z<a id="z"></a>
 ```fortran
 subroutine get_z(self, output)
-    class(ctl)  , intent(in)  :: self
-    real(real32), intent(out) :: output(:)
+    class(ctl)  , intent(inout) :: self
+    real(real32), intent(out)   :: output(:)
 ```
 `output` is the z-coordinate, its size is `nz` obtained by `get_gridnum()`
 
