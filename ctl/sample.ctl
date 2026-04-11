@@ -11,9 +11,9 @@ TDEF 45292 linear 00Z01JAN2000 6hr
  
 VARS 5
 variable1 45 99 sample variable1 : this parameter has 45 levels
-variable2 45 99 sample variable2 : this parameter has 45 levels
-variable3 45 99 sample variable3 : this parameter has 45 levels
-variable4 45 99 sample variable4 : this parameter has 45 levels
-variable5 45 99 sample variable5 : this parameter has 45 levels
+variable2 35 99 sample variable2 : this parameter has 35 levels
+variable3 25 99 sample variable3 : this parameter has 25 levels
+variable4 15 99 sample variable4 : this parameter has 15 levels
+variable5  5 99 sample variable5 : this parameter has  5 levels
 ENDVARS
 

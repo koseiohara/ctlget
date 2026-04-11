@@ -18,6 +18,7 @@ program sample_ctlget
     integer        :: ny
     integer        :: nz
     integer        :: nt
+    integer        :: var_nz
     real(real32), allocatable :: x(:)
     real(real32), allocatable :: y(:)
     real(real32), allocatable :: z(:)
@@ -166,12 +167,18 @@ program sample_ctlget
     call input_ctl%get_var_idx(var, &  !! IN  : Name of the target variable
                              & idx  )  !! OUT : Index of the target variable
     write(*,'(A,I0)') 'Result of get_var_idx() : Index of ' // trim(var) // ' is ', idx
+    call input_ctl%get_var_nz(var_nz , &  !! IN  : Number of levels of the target variable
+                            & var=var  )  !! OUT : Name of the target variable
+    write(*,'(A,I0)') 'Result of get_var_nz() : Number of levels is ', var_nz
 
     write(*,*)
     idx = 3
     call input_ctl%get_var_name(idx, &  !! IN  : Index of the target variable
                               & var  )  !! OUT : Name of the target variable
     write(*,'(A,I0,A)') 'Result of get_var_name() : Name of index ', idx, ' is ' // trim(var)
+    call input_ctl%get_var_nz(var_nz , &  !! IN  : Number of levels of the target variable
+                            & idx=idx  )  !! OUT : Name of the target variable
+    write(*,'(A,I0)') 'Result of get_var_nz() : Number of levels is ', var_nz
     
     write(*,*)
     idx = 2
@@ -179,6 +186,9 @@ program sample_ctlget
                                      & idx=idx      )  !! IN
     write(*,'(A,I0,A)') 'Result of get_var_description() : Description of index ', idx, ' is'
     write(*,'(A)')      trim(description)
+    call input_ctl%get_var_nz(var_nz , &  !! IN  : Number of levels of the target variable
+                            & idx=idx  )  !! OUT : Name of the target variable
+    write(*,'(A,I0)') 'Result of get_var_nz() : Number of levels is ', var_nz
     
     write(*,*)
     var = 'variable5'
@@ -186,6 +196,9 @@ program sample_ctlget
                                      & var=var      )  !! IN
     write(*,'(A)') 'Result of get_var_description() : Description of ' // trim(var) // ' is'
     write(*,'(A)') trim(description)
+    call input_ctl%get_var_nz(var_nz , &  !! IN  : Number of levels of the target variable
+                            & var=var  )  !! OUT : Name of the target variable
+    write(*,'(A,I0)') 'Result of get_var_nz() : Number of levels is ', var_nz
 
 
     deallocate(x)

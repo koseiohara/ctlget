@@ -47,6 +47,7 @@ module ctlget
         procedure, pass  , public  :: get_nvars
         procedure, pass  , public  :: get_var_idx
         procedure, pass  , public  :: get_var_name
+        procedure, pass  , public  :: get_var_nz
         procedure, pass  , public  :: get_var_description
         procedure, pass  , private :: get_line_number
         procedure, nopass, private :: get_number_of_variables
@@ -889,6 +890,53 @@ module ctlget
     end subroutine get_var_name
 
 
+    subroutine get_var_nz(self, output, idx, var)
+        class(ctl)  , intent(in)  :: self
+        integer     , intent(out) :: output
+        integer     , intent(in), optional :: idx
+        character(*), intent(in), optional :: var
+
+        character(self%cmax) :: line
+        character(4)         :: nz_str
+        integer :: idx_cp
+
+        if (present(idx)) then
+            if (idx > self%number_of_variables) then
+                write(0,'(A)') '<ERROR STOP>'
+                write(0,'(A)') 'In get_var_nz() : The specified index exceeds the number of variables'
+                write(0,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
+                write(0,'(A,I0)') 'Specified Index                          : ', idx
+                ERROR STOP
+            endif
+
+            idx_cp = idx
+        else if (present(var)) then
+            ! get the line $var is defined in
+            call self % get_line_number(var                       , &
+                                      & self%lines                , &
+                                      & self%ctl_all(1:self%lines), &
+                                      & idx_cp                      )
+
+            if (idx_cp == 0) then
+                write(0,'(A)') '<ERROR STOP>'
+                write(0,'(A)') trim(var) // ' was not found in ' // trim(self%ctlname)
+                ERROR STOP
+            endif
+
+            idx_cp = idx_cp - self%vars
+        else
+            write(0,'(A)') '<ERROR STOP>'
+            write(0,'(A)') 'In get_var_description() : Both "idx" and "var" were not provided'
+            ERROR STOP
+        endif
+        line   = self%ctl_all(self%vars + idx_cp)
+        nz_str = skip_column(line, 2, ' ')
+
+        read(nz_str,*) output
+
+    end subroutine get_var_nz
+
+
     subroutine get_var_description(self, output, idx, var)
         class(ctl)  , intent(in)  :: self
         character(*), intent(out) :: output
@@ -1199,12 +1247,8 @@ module ctlget
         endif
 
         do column = 1, len(input)
-            output = adjustl(input_cp(1:column_end))
-            !if (column_end == 0) then
-            !    output = ''
-            !endif
-            
             if (column == target_column) then
+                output = adjustl(input_cp(1:column_end))
                 return
             endif
             input_cp = adjustl(input_cp(column_end+2:))
