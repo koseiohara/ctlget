@@ -200,6 +200,16 @@ program sample_ctlget
                             & var=var  )  !! OUT : Name of the target variable
     write(*,'(A,I0)') 'Result of get_var_nz() : Number of levels is ', var_nz
 
+    ! call input_ctl%free()
+
+    ! var = 'variable5'
+    ! call input_ctl%get_var_description(description, &  !! OUT
+    !                                  & var=var      )  !! IN
+    ! write(*,'(A)') 'Result of get_var_description() : Description of ' // trim(var) // ' is'
+    ! write(*,'(A)') trim(description)
+    ! call input_ctl%get_var_nz(var_nz , &  !! IN  : Number of levels of the target variable
+    !                         & var=var  )  !! OUT : Name of the target variable
+    ! write(*,'(A,I0)') 'Result of get_var_nz() : Number of levels is ', var_nz
 
     deallocate(x)
     deallocate(y)

@@ -28,6 +28,7 @@ make install
 
 ## Tools
 - [ctlget](#init)
+- [free](#free)
 - [get_dset](#dset)
 - [get_title](#title)
 - [get_undef](#undef)
@@ -49,6 +50,7 @@ make install
 - [get_nvars](#nvars)
 - [get_var_idx](#var-idx)
 - [get_var_name](#var-name)
+- [get_var_nz](#var-nz)
 - [get_var_description](#var-description)
 
 
@@ -67,6 +69,15 @@ Although the name of function is `init`, you can call this routine by `ctlget` l
 ```fortran
 example = ctlget(ctlname, 100)
 ```
+
+### free<a id="free"></a>
+```fortran
+subroutine free(self)
+    class(ctl), intent(inout) :: self
+```
+Subroutine to deallocate memory.
+Frees the array storing all control file sentences.
+After this call, no routines are available until the classis reinitialized.
 
 ### get_dset<a id="dset"></a>
 ```fortran

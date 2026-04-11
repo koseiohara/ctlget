@@ -30,9 +30,11 @@ module ctlget
         integer      :: zdef                                    ! The line number zdef statement is written
         integer      :: tdef                                    ! The line number tdef statement is written
         integer      :: vars                                    ! The line number vars statement is written
+        logical      :: readable
 
         contains
 
+        procedure, pass  , public  :: free
         procedure, pass  , public  :: get_dset
         procedure, pass  , public  :: get_title
         procedure, pass  , public  :: get_options
@@ -54,6 +56,7 @@ module ctlget
         procedure, pass  , private :: get_n
         procedure, nopass, private :: get_ctl_dir
         procedure, nopass, private :: skip_column
+        procedure, pass  , private :: memcheck
 
         generic, public :: get_undef      => get_undef_s, get_undef_d
         generic, public :: get_x          => get_x_s, get_x_d
@@ -137,6 +140,7 @@ module ctlget
         endif
 
         allocate(character(output % cmax) :: output%ctl_all(lmax))
+        output%readable = .TRUE.
 
         open(NEWUNIT=unit   , &
            & FILE   =ctlname, &
@@ -235,6 +239,17 @@ module ctlget
     !end subroutine del
 
 
+    subroutine free(self)
+        class(ctl), intent(inout) :: self
+
+        if (allocated(self%ctl_all)) then
+            deallocate(self%ctl_all)
+            self%readable = .FALSE.
+        endif
+
+    end subroutine free
+
+
     subroutine get_dset(self, output)
         class(ctl)  , intent(in)  :: self
         character(*), intent(out) :: output
@@ -243,6 +258,8 @@ module ctlget
         character(256)       :: work_filename
         character(256)       :: ctl_dir
         integer :: filename_end
+
+        call self%memcheck('get_dset')  !! IN
 
         ! get the dset line
         line = trim(self%ctl_all(self%dset))
@@ -282,6 +299,8 @@ module ctlget
         character(self%cmax) :: line
         integer :: title_end
 
+        call self%memcheck('get_title')  !! IN
+
         ! get the title line
         line = trim(self%ctl_all(self%title))
 
@@ -306,6 +325,8 @@ module ctlget
         character(self%cmax) :: line
         character(64) :: work_undef
         integer :: undef_end
+
+        call self%memcheck('get_undef')  !! IN
 
         ! get the undef line
         line = trim(self%ctl_all(self%undef))
@@ -340,6 +361,8 @@ module ctlget
         character(64) :: work_undef
         integer :: undef_end
 
+        call self%memcheck('get_undef')  !! IN
+
         ! get the undef line
         line = trim(self%ctl_all(self%undef))
 
@@ -370,6 +393,8 @@ module ctlget
         character(self%cmax) :: line
         character(self%cmax) :: option_cp
         integer :: option_end
+
+        call self%memcheck('get_options')  !! IN
 
         line = trim(self%ctl_all(self%options))
 
@@ -424,6 +449,8 @@ module ctlget
         logical      :: output
         character(1) :: dummy
 
+        call self%memcheck('isYrev')  !! IN
+
         if (.NOT. self%option_read) then
             call self%get_options(dummy)  !! OUT
         endif
@@ -438,6 +465,8 @@ module ctlget
 
         logical      :: output
         character(1) :: dummy
+
+        call self%memcheck('isZrev')  !! IN
 
         if (.NOT. self%option_read) then
             call self%get_options(dummy)  !! OUT
@@ -454,6 +483,8 @@ module ctlget
         logical      :: output
         character(1) :: dummy
 
+        call self%memcheck('includeLeap')  !! IN
+
         if (.NOT. self%option_read) then
             call self%get_options(dummy)  !! OUT
         endif
@@ -469,6 +500,8 @@ module ctlget
 
         character(1) :: dummy
 
+        call self%memcheck('get_endian')  !! IN
+
         if (.NOT. self%option_read) then
             call self%get_options(dummy)  !! OUT
         endif
@@ -483,6 +516,8 @@ module ctlget
         integer   , intent(out), optional :: nx
         integer   , intent(out), optional :: ny
         integer   , intent(out), optional :: nz
+
+        call self%memcheck('get_gridnum')  !! IN
 
         if (present(nx)) then
             call self%get_n(self%xdef, &  !! IN
@@ -506,6 +541,8 @@ module ctlget
         class(ctl), intent(in)  :: self
         integer   , intent(out) :: output
         
+        call self%memcheck('get_nt')  !! IN
+
         call self%get_n(self%tdef, &  !! IN
                       & output     )  !! OUT
 
@@ -517,6 +554,8 @@ module ctlget
         real(real32), intent(out) :: output(:)
 
         integer :: n
+
+        call self%memcheck('get_x')  !! IN
 
         n = size(output)
 
@@ -533,6 +572,8 @@ module ctlget
 
         integer :: n
 
+        call self%memcheck('get_x')  !! IN
+
         n = size(output)
 
         call self%get_coordinate(self%xdef  , &  !! IN
@@ -547,6 +588,8 @@ module ctlget
         real(real32), intent(out)   :: output(:)
 
         integer :: n
+
+        call self%memcheck('get_y')  !! IN
 
         n = size(output)
 
@@ -567,6 +610,8 @@ module ctlget
 
         integer :: n
 
+        call self%memcheck('get_y')  !! IN
+
         n = size(output)
 
         call self%get_coordinate(self%ydef  , &  !! IN
@@ -586,6 +631,8 @@ module ctlget
 
         integer :: n
 
+        call self%memcheck('get_z')  !! IN
+
         n = size(output)
 
         call self%get_coordinate(self%zdef  , &  !! IN
@@ -604,6 +651,8 @@ module ctlget
         real(real64), intent(out)   :: output(:)
 
         integer :: n
+
+        call self%memcheck('get_z')  !! IN
 
         n = size(output)
 
@@ -627,6 +676,8 @@ module ctlget
 
         character(8) :: method
 
+        call self%memcheck('get_xinfo')  !! IN
+
         call self%get_axis_info(self%xdef, &  !! IN
                               & method   , &  !! OUT
                               & xmin     , &  !! OUT
@@ -648,6 +699,8 @@ module ctlget
         logical   , intent(out), optional :: islinear
 
         character(8) :: method
+
+        call self%memcheck('get_xinfo')  !! IN
 
         call self%get_axis_info(self%xdef, &  !! IN
                               & method   , &  !! OUT
@@ -671,6 +724,8 @@ module ctlget
 
         character(8) :: method
 
+        call self%memcheck('get_yinfo')  !! IN
+
         call self%get_axis_info(self%ydef, &  !! IN
                               & method   , &  !! OUT
                               & ymin     , &  !! OUT
@@ -692,6 +747,8 @@ module ctlget
         logical   , intent(out), optional :: islinear
 
         character(8) :: method
+
+        call self%memcheck('get_yinfo')  !! IN
 
         call self%get_axis_info(self%ydef, &  !! IN
                               & method   , &  !! OUT
@@ -715,6 +772,8 @@ module ctlget
 
         character(8) :: method
 
+        call self%memcheck('get_zinfo')  !! IN
+
         call self%get_axis_info(self%zdef, &  !! IN
                               & method   , &  !! OUT
                               & zmin     , &  !! OUT
@@ -736,6 +795,8 @@ module ctlget
         logical   , intent(out), optional :: islinear
 
         character(8) :: method
+
+        call self%memcheck('get_zinfo')  !! IN
 
         call self%get_axis_info(self%zdef, &  !! IN
                               & method   , &  !! OUT
@@ -762,6 +823,8 @@ module ctlget
         integer :: where_z
         integer :: where_colon
         integer :: month
+
+        call self%memcheck('get_tini')  !! IN
 
         line = self%ctl_all(self%tdef)
         cal_str = trim(skip_column(line, 4, ' '))
@@ -824,6 +887,8 @@ module ctlget
         character(4)         :: dt_c
         integer              :: dt_len
 
+        call self%memcheck('get_dt')  !! IN
+
         ! get delta_t column in lower cases
         line = self%ctl_all(self%tdef)
         dt_c = trim(skip_column(line, 5, ' '))
@@ -845,6 +910,8 @@ module ctlget
         class(ctl), intent(in)  :: self
         integer   , intent(out) :: output
 
+        call self%memcheck('get_nvars')  !! IN
+
         output = self%number_of_variables
 
     end subroutine get_nvars
@@ -854,6 +921,8 @@ module ctlget
         class(ctl)  , intent(in)  :: self
         character(*), intent(in)  :: var
         integer     , intent(out) :: output
+
+        call self%memcheck('get_var_idx')  !! IN
 
         ! get the line $var is defined in
         call self % get_line_number(var                       , &
@@ -873,6 +942,8 @@ module ctlget
 
         character(self%cmax) :: line
         integer              :: var_end
+
+        call self%memcheck('get_var_name')  !! IN
 
         if (idx > self%number_of_variables) then
             write(0,'(A)') '<ERROR STOP>'
@@ -897,8 +968,10 @@ module ctlget
         character(*), intent(in), optional :: var
 
         character(self%cmax) :: line
-        character(4)         :: nz_str
+        character(8)         :: nz_str
         integer :: idx_cp
+
+        call self%memcheck('get_var_nz')  !! IN
 
         if (present(idx)) then
             if (idx > self%number_of_variables) then
@@ -926,7 +999,7 @@ module ctlget
             idx_cp = idx_cp - self%vars
         else
             write(0,'(A)') '<ERROR STOP>'
-            write(0,'(A)') 'In get_var_description() : Both "idx" and "var" were not provided'
+            write(0,'(A)') 'In get_var_nz() : Both "idx" and "var" were not provided'
             ERROR STOP
         endif
         line   = self%ctl_all(self%vars + idx_cp)
@@ -946,6 +1019,8 @@ module ctlget
         character(self%cmax) :: line
         integer :: idx_cp
         integer :: where_space
+
+        call self%memcheck('get_var_description')  !! IN
 
         if (present(idx)) then
             if (idx > self%number_of_variables) then
@@ -1006,6 +1081,8 @@ module ctlget
         character(64)        :: flag_lower
         integer :: where_space
         integer :: i
+
+        call self%memcheck('get_line_number')  !! IN
 
         ! flag to lower case
         flag_lower = to_lower(flag)
@@ -1260,6 +1337,19 @@ module ctlget
 
     end function skip_column
 
+
+    subroutine memcheck(self, func)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
+        class(ctl)  , intent(in) :: self
+        character(*), intent(in) :: func
+
+        if (.NOT. self%readable) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'In ' // trim(func) // '(): memory was already released'
+            ERROR STOP
+        endif
+
+    end subroutine memcheck
 
 end module ctlget
 
