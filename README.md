@@ -258,6 +258,19 @@ subroutine get_var_name(self, idx, output)
 `idx` is the index of target variable.
 `output` is its name.
 
+### get_var_nz<a id="var-nz"></a>
+```fortran
+subroutine get_var_nz(self, output, idx, var)
+    class(ctl)  , intent(in)  :: self
+    integer     , intent(out) :: output
+    integer     , intent(in), optional :: idx
+    character(*), intent(in), optional :: var
+```
+`output` is the number of levels of target variable.
+`idx` is the index of target variable.
+`var` is the name of target variable.
+Variable can be specified by `idx` or `var`.
+
 ### get_var_description<a id="var-description"></a>
 ```fortran
 subroutine get_var_description(self, output, idx, var)
