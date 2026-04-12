@@ -100,6 +100,7 @@ module ctlget
 
     ! Constructor
     function init(ctlname, linemax, columnmax) result(output)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         character(*), intent(in) :: ctlname
         integer     , intent(in), optional :: linemax       ! DEFAULT : 100
         integer     , intent(in), optional :: columnmax     ! DEFAULT : 256
@@ -117,9 +118,9 @@ module ctlget
 
         if (present(linemax)) then
             if (linemax <= 0) then
-                write(0,'(A)') '<ERROR STOP>'
-                write(0,'(A)') 'Invalid linemax to read ' // trim(ctlname)
-                write(0,'(A,I0)') 'Specified : ', linemax
+                write(err,'(A)') '<ERROR STOP>'
+                write(err,'(A)') 'Invalid linemax to read ' // trim(ctlname)
+                write(err,'(A,I0)') 'Specified : ', linemax
                 ERROR STOP
             endif
             lmax = linemax
@@ -129,9 +130,9 @@ module ctlget
 
         if (present(columnmax)) then
             if (columnmax <= 0) then
-                write(0,'(A)') '<ERROR STOP>'
-                write(0,'(A)') 'Invalid columnmax to read ' // trim(ctlname)
-                write(0,'(A,I0)') 'Specified : ', columnmax
+                write(err,'(A)') '<ERROR STOP>'
+                write(err,'(A)') 'Invalid columnmax to read ' // trim(ctlname)
+                write(err,'(A,I0)') 'Specified : ', columnmax
                 ERROR STOP
             endif
             output % cmax = columnmax
@@ -149,9 +150,9 @@ module ctlget
            & IOMSG  =iomsg    )
 
         if (iostat /= 0) then
-            write(0,'(A)') '<ERROR STOP>'
-            write(0,'(A)') trim(ctlname)
-            write(0,'(A)') trim(iomsg)
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') trim(ctlname)
+            write(err,'(A)') trim(iomsg)
             ERROR STOP
         endif
 
@@ -936,6 +937,7 @@ module ctlget
 
 
     subroutine get_var_name(self, idx, output)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         class(ctl)  , intent(in)  :: self
         integer     , intent(in)  :: idx
         character(*), intent(out) :: output
@@ -946,10 +948,10 @@ module ctlget
         call self%memcheck('get_var_name')  !! IN
 
         if (idx > self%number_of_variables) then
-            write(0,'(A)') '<ERROR STOP>'
-            write(0,'(A)') 'In get_var_name() : The specified index exceeds the number of variables'
-            write(0,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
-            write(0,'(A,I0)') 'Specified Index                          : ', idx
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'In get_var_name() : The specified index exceeds the number of variables'
+            write(err,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
+            write(err,'(A,I0)') 'Specified Index                          : ', idx
             ERROR STOP
         endif
 
@@ -962,6 +964,7 @@ module ctlget
 
 
     subroutine get_var_nz(self, output, idx, var)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         class(ctl)  , intent(in)  :: self
         integer     , intent(out) :: output
         integer     , intent(in), optional :: idx
@@ -975,10 +978,10 @@ module ctlget
 
         if (present(idx)) then
             if (idx > self%number_of_variables) then
-                write(0,'(A)') '<ERROR STOP>'
-                write(0,'(A)') 'In get_var_nz() : The specified index exceeds the number of variables'
-                write(0,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
-                write(0,'(A,I0)') 'Specified Index                          : ', idx
+                write(err,'(A)') '<ERROR STOP>'
+                write(err,'(A)') 'In get_var_nz() : The specified index exceeds the number of variables'
+                write(err,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
+                write(err,'(A,I0)') 'Specified Index                          : ', idx
                 ERROR STOP
             endif
 
@@ -991,15 +994,15 @@ module ctlget
                                       & idx_cp                      )
 
             if (idx_cp == 0) then
-                write(0,'(A)') '<ERROR STOP>'
-                write(0,'(A)') trim(var) // ' was not found in ' // trim(self%ctlname)
+                write(err,'(A)') '<ERROR STOP>'
+                write(err,'(A)') trim(var) // ' was not found in ' // trim(self%ctlname)
                 ERROR STOP
             endif
 
             idx_cp = idx_cp - self%vars
         else
-            write(0,'(A)') '<ERROR STOP>'
-            write(0,'(A)') 'In get_var_nz() : Both "idx" and "var" were not provided'
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'In get_var_nz() : Both "idx" and "var" were not provided'
             ERROR STOP
         endif
         line   = self%ctl_all(self%vars + idx_cp)
@@ -1011,6 +1014,7 @@ module ctlget
 
 
     subroutine get_var_description(self, output, idx, var)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         class(ctl)  , intent(in)  :: self
         character(*), intent(out) :: output
         integer     , intent(in), optional :: idx
@@ -1024,10 +1028,10 @@ module ctlget
 
         if (present(idx)) then
             if (idx > self%number_of_variables) then
-                write(0,'(A)') '<ERROR STOP>'
-                write(0,'(A)') 'In get_var_description() : The specified index exceeds the number of variables'
-                write(0,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
-                write(0,'(A,I0)') 'Specified Index                          : ', idx
+                write(err,'(A)') '<ERROR STOP>'
+                write(err,'(A)') 'In get_var_description() : The specified index exceeds the number of variables'
+                write(err,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
+                write(err,'(A,I0)') 'Specified Index                          : ', idx
                 ERROR STOP
             endif
 
@@ -1040,15 +1044,15 @@ module ctlget
                                       & idx_cp                      )
 
             if (idx_cp == 0) then
-                write(0,'(A)') '<ERROR STOP>'
-                write(0,'(A)') trim(var) // ' was not found in ' // trim(self%ctlname)
+                write(err,'(A)') '<ERROR STOP>'
+                write(err,'(A)') trim(var) // ' was not found in ' // trim(self%ctlname)
                 ERROR STOP
             endif
 
             idx_cp = idx_cp - self%vars
         else
-            write(0,'(A)') '<ERROR STOP>'
-            write(0,'(A)') 'In get_var_description() : Both "idx" and "var" were not provided'
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'In get_var_description() : Both "idx" and "var" were not provided'
             ERROR STOP
         endif
 
