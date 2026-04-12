@@ -1,6 +1,6 @@
 # CTLGET
 
-This Fortran library is a GrADS CTL parser.
+This Fortran library is a GrADS control file parser.
 The latest version still not support `PDEF` and `EDEF` statements.
 
 ## Install and Build
