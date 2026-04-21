@@ -598,7 +598,7 @@ module ctlget
                                & n          , &  !! IN
                                & output(1:n)  )  !! OUT
 
-        if (self.isYrev()) then
+        if (self%isYrev()) then
             output(1:n) = output(n:1:-1)
         endif
 
@@ -619,7 +619,7 @@ module ctlget
                                & n          , &  !! IN
                                & output(1:n)  )  !! OUT
 
-        if (self.isYrev()) then
+        if (self%isYrev()) then
             output(1:n) = output(n:1:-1)
         endif
 
@@ -640,7 +640,7 @@ module ctlget
                                & n          , &  !! IN
                                & output(1:n)  )  !! OUT
 
-        if (self.isZrev()) then
+        if (self%isZrev()) then
             output(1:n) = output(n:1:-1)
         endif
 
@@ -661,7 +661,7 @@ module ctlget
                                & n          , &  !! IN
                                & output(1:n)  )  !! OUT
 
-        if (self.isZrev()) then
+        if (self%isZrev()) then
             output(1:n) = output(n:1:-1)
         endif
 
