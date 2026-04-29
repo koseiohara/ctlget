@@ -982,7 +982,6 @@ module ctlget
         do month = 1, 12
             where_month = index(cal_str, trim(month_list(month)))
             if (where_month /= 0) then
-                where_month = where_month
                 ! get month
                 calendar(2) = month
                 exit
