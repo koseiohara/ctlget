@@ -34,6 +34,7 @@ module ctlget
         integer      :: zdef                                    ! The line number zdef statement is written
         integer      :: tdef                                    ! The line number tdef statement is written
         integer      :: vars                                    ! The line number vars statement is written
+        integer      :: endvars                                 ! The line number endvars statement is written
         logical      :: readable
 
         contains
@@ -275,6 +276,17 @@ module ctlget
         if (output%vars == 0) then
             write(err,'(A)') '<ERROR STOP>'
             write(err,'(A)') 'Control file does not have VARS line'
+            ERROR STOP
+        endif
+
+        call output % get_line_number(FLAG   ='endvars'              , &  !! IN
+                                    & LINES  =lines                  , &  !! IN
+                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & LINE   =output%endvars           )  !! OUT
+
+        if (output%endvars == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Control file does not have ENDVARS line'
             ERROR STOP
         endif
 
@@ -1075,14 +1087,17 @@ module ctlget
         integer     , intent(out) :: output
 
         call self%memcheck('get_var_idx')  !! IN
+        write(*,*) self%vars
+        write(*,*) self%endvars
+        write(*,*) self%ctl_all(self%vars+1:self%endvars-1)
 
         ! get the line $var is defined in
         call self % get_line_number(var                       , &
-                                  & self%lines                , &
-                                  & self%ctl_all(1:self%lines), &
+                                  & self%endvars-self%vars-1  , &
+                                  & self%ctl_all(self%vars+1:self%endvars-1), &
                                   & output                      )
 
-        output = output - self%vars
+        ! output = output - self%vars
 
     end subroutine get_var_idx
 
@@ -1130,7 +1145,7 @@ module ctlget
         if (present(idx)) then
             if (idx > self%number_of_variables .OR. idx <= 0) then
                 write(err,'(A)') '<ERROR STOP>'
-            write(err,'(A)') 'In get_var_name() : The specified index exceeds the number of variables or index is negative or zero'
+            write(err,'(A)') 'In get_var_nz() : The specified index exceeds the number of variables or index is negative or zero'
                 write(err,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
                 write(err,'(A,I0)') 'Specified Index                          : ', idx
                 ERROR STOP
@@ -1180,7 +1195,7 @@ module ctlget
         if (present(idx)) then
             if (idx > self%number_of_variables .OR. idx <= 0) then
                 write(err,'(A)') '<ERROR STOP>'
-            write(err,'(A)') 'In get_var_name() : The specified index exceeds the number of variables or index is negative or zero'
+            write(err,'(A)') 'In get_var_description() : The specified index exceeds the number of variables or index is negative or zero'
                 write(err,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
                 write(err,'(A,I0)') 'Specified Index                          : ', idx
                 ERROR STOP
@@ -1237,6 +1252,7 @@ module ctlget
         character(64)        :: flag_lower
         integer :: where_space
         integer :: i
+        integer :: j
 
         call self%memcheck('get_line_number')  !! IN
 
