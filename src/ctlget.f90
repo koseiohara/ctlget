@@ -63,6 +63,7 @@ module ctlget
         generic, public :: get_y          => get_y_s, get_y_d
         generic, public :: get_z          => get_z_s, get_z_d
         generic, public :: get_coordinate => get_coordinate_s, get_coordinate_d
+        generic, public :: read_levels    => read_levels_s
         generic, public :: get_xinfo      => get_xinfo_s, get_xinfo_d
         generic, public :: get_yinfo      => get_yinfo_s, get_yinfo_d
         generic, public :: get_zinfo      => get_zinfo_s, get_zinfo_d
@@ -78,6 +79,7 @@ module ctlget
         procedure, pass  , public  :: get_z_d
         procedure, pass  , private :: get_coordinate_s
         procedure, pass  , private :: get_coordinate_d
+        procedure, pass  , private :: read_levels_s
         procedure, pass  , public  :: get_xinfo_s
         procedure, pass  , public  :: get_xinfo_d
         procedure, pass  , public  :: get_yinfo_s
@@ -1194,12 +1196,15 @@ module ctlget
             return
         else
             ! if coordinate is 'levels', concatenate def and the next line and get $n numbers of levels
-            where_method = index(to_lower(line), 'levels')
-            levels_start = where_method + 6
-            line_levels = trim(line) // ' ' // trim(self%ctl_all(line_number+1))
-            line_levels = line_levels(levels_start:)
+            ! where_method = index(to_lower(line), 'levels')
+            ! levels_start = where_method + 6
+            ! line_levels = trim(line) // ' ' // trim(self%ctl_all(line_number+1))
+            ! line_levels = line_levels(levels_start:)
 
-            read(line_levels,*) output(1:n)
+            ! read(line_levels,*) output(1:n)
+            call self%read_levels(line_number, &  !! IN
+                                & n          , &  !! IN
+                                & output(1:n)  )  !! OUT
             return
         endif
 
@@ -1244,6 +1249,82 @@ module ctlget
         endif
 
     end subroutine get_coordinate_d
+
+
+    subroutine read_levels_s(self, line_number, n, output)
+        use, intrinsic :: iso_fortran_env, only : rk=>real32, err=>error_unit
+        use, intrinsic :: iso_c_binding  , only : tab=>c_horizontal_tab
+        class(ctl), intent(in)  :: self
+        integer   , intent(in)  :: line_number
+        integer   , intent(in)  :: n
+        real(rk)  , intent(out) :: output(n)
+
+        integer, parameter :: skip_col=3
+        character(self%cmax) :: str
+        integer :: i
+        integer :: j
+        integer :: l
+        integer :: delim_pos
+        integer :: stat
+
+        write(*,*) 'read_levels was called!'
+
+        !! skip '?DEF nn levels' columns
+        str = self%ctl_all(line_number)
+        !! Change delemeter to space
+        do j = 1, len_trim(str)
+            if (str(j:j) == ',' .OR. str(j:j) == tab) then
+                str(j:j) = ' '
+            endif
+        enddo
+        str = adjustl(str)
+        do j = 1, skip_col
+            delim_pos = scan(str, ' ')
+            str = adjustl(str(delim_pos+1:))
+        enddo
+
+        !! get levels column by column until n-th element of output is filled
+        i = 1
+        do l = line_number, self%lines
+            do
+                read(str,*,iostat=stat) output(i)
+                if (stat == 0) then
+                    if (i < n) then
+                        !! prepare for the next step...
+                        i = i + 1
+    
+                        delim_pos = scan(str, ' ')
+                        str = adjustl(str(delim_pos+1:))
+                        cycle
+                    else
+                        !! Filled output array
+                        return
+                    endif
+                else
+                    !! End of column: go to the next line
+                    exit
+                endif
+            enddo
+
+            if (l == self%lines) then
+                write(err,'(A)') '<ERROR STOP>'
+                write(err,'(A)') 'Number of levels is not enough'
+                ERROR STOP
+            endif
+
+            !! Get the next line
+            str = self%ctl_all(l+1)
+            !! Change delemeter to space
+            do j = 1, self%cmax
+                if (str(j:j) == ',' .OR. str(j:j) == tab) then
+                    str(j:j) = ' '
+                endif
+            enddo
+            str = adjustl(str)
+
+        enddo
+
+    end subroutine read_levels_s
 
 
     subroutine get_axis_info_s(self, line_number, method, minimum, delta)
