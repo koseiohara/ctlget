@@ -465,7 +465,7 @@ module ctlget
             self%zrev         = .FALSE.
             self%calendar_365 = .FALSE.
             self%endian       = 'native'
-            self%options_read = .TRUE.
+            self%option_read  = .TRUE.
             output = ''
             return
         endif
