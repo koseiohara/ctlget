@@ -58,6 +58,7 @@ module ctlget
         procedure, pass  , private :: get_line_number
         procedure, nopass, private :: get_number_of_variables
         procedure, pass  , private :: get_n
+        procedure, pass  , private :: get_gridnum_core
         procedure, nopass, private :: get_ctl_dir
         procedure, nopass, private :: skip_column
         procedure, pass  , private :: memcheck
