@@ -3,7 +3,6 @@
 *.a
 EXE
 exe
-sample
 ctlget
 *.dat
 *.bin
@@ -11,3 +10,4 @@ ctlget
 *.swp
 
 
+/sample/test
