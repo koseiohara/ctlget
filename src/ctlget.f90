@@ -275,6 +275,10 @@ module ctlget
             ERROR STOP
         endif
 
+        if (output%options > output%vars .AND. output%options < output%endvars) then
+            output%options = 0
+        endif
+
         call get_number_of_variables(output)  !! INOUT
 
         ! Name of control file

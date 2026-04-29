@@ -1,4 +1,4 @@
-EXE = sample
+EXE = test
 OBJS = sample_ctlget.o
 
 FC = ifort
