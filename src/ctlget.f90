@@ -560,8 +560,8 @@ module ctlget
 
     subroutine get_x_s(self, output)
         use, intrinsic :: iso_fortran_env, only : err=>error_unit
-        class(ctl)  , intent(in)  :: self
-        real(real32), intent(out) :: output(:)
+        class(ctl)  , intent(inout) :: self
+        real(real32), intent(out)   :: output(:)
 
         integer :: n
 
@@ -586,8 +586,8 @@ module ctlget
 
     subroutine get_x_d(self, output)
         use, intrinsic :: iso_fortran_env, only : err=>error_unit
-        class(ctl)  , intent(in)  :: self
-        real(real64), intent(out) :: output(:)
+        class(ctl)  , intent(inout) :: self
+        real(real64), intent(out)   :: output(:)
 
         integer :: n
 
@@ -621,7 +621,7 @@ module ctlget
 
         call self%get_gridnum_core()
 
-        if (size(output) > self%nx) then
+        if (size(output) > self%ny) then
             write(err,'(A)') '<ERROR STOP>'
             write(err,'(A)') 'In subroutine get_y()'
             write(err,'(A)') 'Array is too long'
@@ -651,7 +651,7 @@ module ctlget
 
         call self%get_gridnum_core()
 
-        if (size(output) > self%nx) then
+        if (size(output) > self%ny) then
             write(err,'(A)') '<ERROR STOP>'
             write(err,'(A)') 'In subroutine get_y()'
             write(err,'(A)') 'Array is too long'
@@ -681,7 +681,7 @@ module ctlget
 
         call self%get_gridnum_core()
 
-        if (size(output) > self%nx) then
+        if (size(output) > self%nz) then
             write(err,'(A)') '<ERROR STOP>'
             write(err,'(A)') 'In subroutine get_z()'
             write(err,'(A)') 'Array is too long'
@@ -711,7 +711,7 @@ module ctlget
 
         call self%get_gridnum_core()
 
-        if (size(output) > self%nx) then
+        if (size(output) > self%nz) then
             write(err,'(A)') '<ERROR STOP>'
             write(err,'(A)') 'In subroutine get_z()'
             write(err,'(A)') 'Array is too long'
