@@ -72,7 +72,7 @@ module ctlget
         generic, public  :: get_xinfo      => get_xinfo_s, get_xinfo_d
         generic, public  :: get_yinfo      => get_yinfo_s, get_yinfo_d
         generic, public  :: get_zinfo      => get_zinfo_s, get_zinfo_d
-        generic, public  :: get_axis_info  => get_axis_info_s , get_axis_info_d
+        generic, public  :: get_axis_info  => get_axis_info_s, get_axis_info_d
 
         procedure, pass  , public  :: get_undef_s
         procedure, pass  , public  :: get_undef_d
@@ -522,17 +522,10 @@ module ctlget
 
 
     subroutine get_gridnum(self, nx, ny, nz)
-        class(ctl), intent(in) :: self
+        class(ctl), intent(inout) :: self
         integer   , intent(out), optional :: nx
         integer   , intent(out), optional :: ny
         integer   , intent(out), optional :: nz
-
-        if (self%gridnum_read) then
-            nx = self%nx
-            ny = self%ny
-            nz = self%nz
-            return
-        endif
 
         call self%memcheck('get_gridnum')  !! IN
 
@@ -566,6 +559,7 @@ module ctlget
 
 
     subroutine get_x_s(self, output)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         class(ctl)  , intent(in)  :: self
         real(real32), intent(out) :: output(:)
 
@@ -575,7 +569,13 @@ module ctlget
 
         call self%get_gridnum_core()
 
-        n = min(size(output), self%nx)
+        if (size(output) > self%nx) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'In subroutine get_x()'
+            write(err,'(A)') 'Array is too long'
+            ERROR STOP
+        endif
+        n = size(output)
 
         call self%get_coordinate(self%xdef  , &  !! IN
                                & n          , &  !! IN
@@ -585,6 +585,7 @@ module ctlget
 
 
     subroutine get_x_d(self, output)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         class(ctl)  , intent(in)  :: self
         real(real64), intent(out) :: output(:)
 
@@ -594,7 +595,13 @@ module ctlget
 
         call self%get_gridnum_core()
 
-        n = min(size(output), self%nx)
+        if (size(output) > self%nx) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'In subroutine get_x()'
+            write(err,'(A)') 'Array is too long'
+            ERROR STOP
+        endif
+        n = size(output)
 
         call self%get_coordinate(self%xdef  , &  !! IN
                                & n          , &  !! IN
@@ -604,6 +611,7 @@ module ctlget
 
 
     subroutine get_y_s(self, output)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         class(ctl)  , intent(inout) :: self
         real(real32), intent(out)   :: output(:)
 
@@ -613,7 +621,13 @@ module ctlget
 
         call self%get_gridnum_core()
 
-        n = min(size(output), self%ny)
+        if (size(output) > self%nx) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'In subroutine get_y()'
+            write(err,'(A)') 'Array is too long'
+            ERROR STOP
+        endif
+        n = size(output)
 
         call self%get_coordinate(self%ydef  , &  !! IN
                                & n          , &  !! IN
@@ -627,6 +641,7 @@ module ctlget
 
 
     subroutine get_y_d(self, output)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         class(ctl)  , intent(inout) :: self
         real(real64), intent(out)   :: output(:)
 
@@ -636,7 +651,13 @@ module ctlget
 
         call self%get_gridnum_core()
 
-        n = min(size(output), self%ny)
+        if (size(output) > self%nx) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'In subroutine get_y()'
+            write(err,'(A)') 'Array is too long'
+            ERROR STOP
+        endif
+        n = size(output)
 
         call self%get_coordinate(self%ydef  , &  !! IN
                                & n          , &  !! IN
@@ -650,6 +671,7 @@ module ctlget
 
 
     subroutine get_z_s(self, output)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         class(ctl)  , intent(inout) :: self
         real(real32), intent(out)   :: output(:)
 
@@ -659,7 +681,13 @@ module ctlget
 
         call self%get_gridnum_core()
 
-        n = min(size(output), self%nz)
+        if (size(output) > self%nx) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'In subroutine get_z()'
+            write(err,'(A)') 'Array is too long'
+            ERROR STOP
+        endif
+        n = size(output)
 
         call self%get_coordinate(self%zdef  , &  !! IN
                                & n          , &  !! IN
@@ -673,6 +701,7 @@ module ctlget
 
 
     subroutine get_z_d(self, output)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         class(ctl)  , intent(inout) :: self
         real(real64), intent(out)   :: output(:)
 
@@ -682,7 +711,13 @@ module ctlget
 
         call self%get_gridnum_core()
 
-        n = min(size(output), self%nz)
+        if (size(output) > self%nx) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'In subroutine get_z()'
+            write(err,'(A)') 'Array is too long'
+            ERROR STOP
+        endif
+        n = size(output)
 
         call self%get_coordinate(self%zdef  , &  !! IN
                                & n          , &  !! IN
@@ -1435,7 +1470,7 @@ module ctlget
         real(lrk)   , intent(out) :: delta
 
         character(self%cmax) :: line
-        integer      :: dummy
+        integer :: dummy
 
         line = self%ctl_all(line_number)
         line = adjustl(line(5:self%cmax))
@@ -1444,6 +1479,10 @@ module ctlget
 
         if (to_lower(trim(method)) == 'linear') then
             read(line,*) dummy, method, minimum, delta
+        else
+            method  = 'levels'
+            minimum = 0
+            delta   = 0
         endif
 
     end subroutine get_axis_info_s
@@ -1458,7 +1497,7 @@ module ctlget
         real(lrk)   , intent(out) :: delta
 
         character(self%cmax) :: line
-        integer      :: dummy
+        integer :: dummy
 
         line = self%ctl_all(line_number)
         line = adjustl(line(5:self%cmax))
@@ -1467,6 +1506,10 @@ module ctlget
 
         if (to_lower(trim(method)) == 'linear') then
             read(line,*) dummy, method, minimum, delta
+        else
+            method  = 'levels'
+            minimum = 0
+            delta   = 0
         endif
 
     end subroutine get_axis_info_d
