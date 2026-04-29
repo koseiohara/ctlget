@@ -21,6 +21,10 @@ module ctlget
         logical      :: zrev                                    ! wheter data is zrev
         logical      :: calendar_365                            ! Whether data include leap days
         character(8) :: endian                                  ! Endian of binary file
+        logical      :: gridnum_read                            ! Flag whether number of grids have already read
+        integer      :: nx                                      ! Number of grids in x-direction
+        integer      :: ny                                      ! Number of grids in y-direction
+        integer      :: nz                                      ! Number of grids in z-direction
         integer      :: dset                                    ! The line number dset statement is written
         integer      :: title                                   ! The line number title statement is written
         integer      :: undef                                   ! The line number undef statement is written
@@ -58,16 +62,16 @@ module ctlget
         procedure, nopass, private :: skip_column
         procedure, pass  , private :: memcheck
 
-        generic, public :: get_undef      => get_undef_s, get_undef_d
-        generic, public :: get_x          => get_x_s, get_x_d
-        generic, public :: get_y          => get_y_s, get_y_d
-        generic, public :: get_z          => get_z_s, get_z_d
-        generic, public :: get_coordinate => get_coordinate_s, get_coordinate_d
-        generic, public :: read_levels    => read_levels_s
-        generic, public :: get_xinfo      => get_xinfo_s, get_xinfo_d
-        generic, public :: get_yinfo      => get_yinfo_s, get_yinfo_d
-        generic, public :: get_zinfo      => get_zinfo_s, get_zinfo_d
-        generic, public :: get_axis_info  => get_axis_info_s , get_axis_info_d
+        generic, public  :: get_undef      => get_undef_s, get_undef_d
+        generic, public  :: get_x          => get_x_s, get_x_d
+        generic, public  :: get_y          => get_y_s, get_y_d
+        generic, public  :: get_z          => get_z_s, get_z_d
+        generic, private :: get_coordinate => get_coordinate_s, get_coordinate_d
+        generic, private :: read_levels    => read_levels_s, read_levels_d
+        generic, public  :: get_xinfo      => get_xinfo_s, get_xinfo_d
+        generic, public  :: get_yinfo      => get_yinfo_s, get_yinfo_d
+        generic, public  :: get_zinfo      => get_zinfo_s, get_zinfo_d
+        generic, public  :: get_axis_info  => get_axis_info_s , get_axis_info_d
 
         procedure, pass  , public  :: get_undef_s
         procedure, pass  , public  :: get_undef_d
@@ -80,6 +84,7 @@ module ctlget
         procedure, pass  , private :: get_coordinate_s
         procedure, pass  , private :: get_coordinate_d
         procedure, pass  , private :: read_levels_s
+        procedure, pass  , private :: read_levels_d
         procedure, pass  , public  :: get_xinfo_s
         procedure, pass  , public  :: get_xinfo_d
         procedure, pass  , public  :: get_yinfo_s
@@ -225,7 +230,8 @@ module ctlget
         ! Number of lines in control file
         output%lines = lines
         ! set status whether option has already read
-        output%option_read = .FALSE.
+        output%option_read  = .FALSE.
+        output%gridnum_read = .FALSE.
 
     end function init
 
@@ -520,21 +526,27 @@ module ctlget
         integer   , intent(out), optional :: ny
         integer   , intent(out), optional :: nz
 
+        if (self%gridnum_read) then
+            nx = self%nx
+            ny = self%ny
+            nz = self%nz
+            return
+        endif
+
         call self%memcheck('get_gridnum')  !! IN
 
+        call self%get_gridnum_core()
+
         if (present(nx)) then
-            call self%get_n(self%xdef, &  !! IN
-                          & nx         )  !! OUT
+            nx = self%nx
         endif
 
         if (present(ny)) then
-            call self%get_n(self%ydef, &  !! IN
-                          & ny         )  !! OUT
+            ny = self%ny
         endif
 
         if (present(nz)) then
-            call self%get_n(self%zdef, &  !! IN
-                          & nz         )  !! OUT
+            nz = self%nz
         endif
 
     end subroutine get_gridnum
@@ -560,7 +572,9 @@ module ctlget
 
         call self%memcheck('get_x')  !! IN
 
-        n = size(output)
+        call self%get_gridnum_core()
+
+        n = min(size(output), self%nx)
 
         call self%get_coordinate(self%xdef  , &  !! IN
                                & n          , &  !! IN
@@ -577,7 +591,9 @@ module ctlget
 
         call self%memcheck('get_x')  !! IN
 
-        n = size(output)
+        call self%get_gridnum_core()
+
+        n = min(size(output), self%nx)
 
         call self%get_coordinate(self%xdef  , &  !! IN
                                & n          , &  !! IN
@@ -594,7 +610,9 @@ module ctlget
 
         call self%memcheck('get_y')  !! IN
 
-        n = size(output)
+        call self%get_gridnum_core()
+
+        n = min(size(output), self%ny)
 
         call self%get_coordinate(self%ydef  , &  !! IN
                                & n          , &  !! IN
@@ -615,7 +633,9 @@ module ctlget
 
         call self%memcheck('get_y')  !! IN
 
-        n = size(output)
+        call self%get_gridnum_core()
+
+        n = min(size(output), self%ny)
 
         call self%get_coordinate(self%ydef  , &  !! IN
                                & n          , &  !! IN
@@ -636,7 +656,9 @@ module ctlget
 
         call self%memcheck('get_z')  !! IN
 
-        n = size(output)
+        call self%get_gridnum_core()
+
+        n = min(size(output), self%nz)
 
         call self%get_coordinate(self%zdef  , &  !! IN
                                & n          , &  !! IN
@@ -657,7 +679,9 @@ module ctlget
 
         call self%memcheck('get_z')  !! IN
 
-        n = size(output)
+        call self%get_gridnum_core()
+
+        n = min(size(output), self%nz)
 
         call self%get_coordinate(self%zdef  , &  !! IN
                                & n          , &  !! IN
@@ -668,6 +692,25 @@ module ctlget
         endif
 
     end subroutine get_z_d
+
+
+    subroutine get_gridnum_core(self)
+        class(ctl), intent(inout) :: self
+
+        if (.NOT. self%gridnum_read) then
+            call self%get_n(self%xdef, &  !! IN
+                          & self%nx    )  !! OUT
+
+            call self%get_n(self%ydef, &  !! IN
+                          & self%ny    )  !! OUT
+
+            call self%get_n(self%zdef, &  !! IN
+                          & self%nz    )  !! OUT
+
+            self%gridnum_read = .TRUE.
+        endif
+
+    end subroutine get_gridnum_core
 
 
     subroutine get_xinfo_s(self, xmin, dx, islinear)
@@ -1176,14 +1219,11 @@ module ctlget
         real(lrk) , intent(out) :: output(n)
 
         character(self%cmax)   :: line
-        character(self%cmax*2) :: line_levels
         character(8)           :: specify_method
         character(8)           :: n_c
         real(lrk)              :: min
         real(lrk)              :: delta
         integer :: i
-        integer :: where_method
-        integer :: levels_start
 
         line = self%ctl_all(line_number)
         line = adjustl(line(5:self%cmax))
@@ -1195,13 +1235,6 @@ module ctlget
             output(1:n) = [(min+delta*real(i, kind=lrk), i = 0, n-1)]
             return
         else
-            ! if coordinate is 'levels', concatenate def and the next line and get $n numbers of levels
-            ! where_method = index(to_lower(line), 'levels')
-            ! levels_start = where_method + 6
-            ! line_levels = trim(line) // ' ' // trim(self%ctl_all(line_number+1))
-            ! line_levels = line_levels(levels_start:)
-
-            ! read(line_levels,*) output(1:n)
             call self%read_levels(line_number, &  !! IN
                                 & n          , &  !! IN
                                 & output(1:n)  )  !! OUT
@@ -1219,14 +1252,11 @@ module ctlget
         real(lrk) , intent(out) :: output(n)
 
         character(self%cmax)   :: line
-        character(self%cmax*2) :: line_levels
         character(8)           :: specify_method
         character(8)           :: n_c
         real(lrk)              :: min
         real(lrk)              :: delta
         integer :: i
-        integer :: where_method
-        integer :: levels_start
 
         line = self%ctl_all(line_number)
         line = adjustl(line(5:self%cmax))
@@ -1238,13 +1268,9 @@ module ctlget
             output(1:n) = [(min+delta*real(i, kind=lrk), i = 0, n-1)]
             return
         else
-            ! if coordinate is 'levels', concatenate def and the next line and get $n numbers of levels
-            where_method = index(to_lower(line), 'levels')
-            levels_start = where_method + 6
-            line_levels = trim(line) // ' ' // trim(self%ctl_all(line_number+1))
-            line_levels = line_levels(levels_start:)
-
-            read(line_levels,*) output(1:n)
+            call self%read_levels(line_number, &  !! IN
+                                & n          , &  !! IN
+                                & output(1:n)  )  !! OUT
             return
         endif
 
@@ -1266,8 +1292,6 @@ module ctlget
         integer :: l
         integer :: delim_pos
         integer :: stat
-
-        write(*,*) 'read_levels was called!'
 
         !! skip '?DEF nn levels' columns
         str = self%ctl_all(line_number)
@@ -1325,6 +1349,80 @@ module ctlget
         enddo
 
     end subroutine read_levels_s
+
+
+    subroutine read_levels_d(self, line_number, n, output)
+        use, intrinsic :: iso_fortran_env, only : rk=>real64, err=>error_unit
+        use, intrinsic :: iso_c_binding  , only : tab=>c_horizontal_tab
+        class(ctl), intent(in)  :: self
+        integer   , intent(in)  :: line_number
+        integer   , intent(in)  :: n
+        real(rk)  , intent(out) :: output(n)
+
+        integer, parameter :: skip_col=3
+        character(self%cmax) :: str
+        integer :: i
+        integer :: j
+        integer :: l
+        integer :: delim_pos
+        integer :: stat
+
+        !! skip '?DEF nn levels' columns
+        str = self%ctl_all(line_number)
+        !! Change delemeter to space
+        do j = 1, len_trim(str)
+            if (str(j:j) == ',' .OR. str(j:j) == tab) then
+                str(j:j) = ' '
+            endif
+        enddo
+        str = adjustl(str)
+        do j = 1, skip_col
+            delim_pos = scan(str, ' ')
+            str = adjustl(str(delim_pos+1:))
+        enddo
+
+        !! get levels column by column until n-th element of output is filled
+        i = 1
+        do l = line_number, self%lines
+            do
+                read(str,*,iostat=stat) output(i)
+                if (stat == 0) then
+                    if (i < n) then
+                        !! prepare for the next step...
+                        i = i + 1
+    
+                        delim_pos = scan(str, ' ')
+                        str = adjustl(str(delim_pos+1:))
+                        cycle
+                    else
+                        !! Filled output array
+                        return
+                    endif
+                else
+                    !! End of column: go to the next line
+                    exit
+                endif
+            enddo
+
+            if (l == self%lines) then
+                write(err,'(A)') '<ERROR STOP>'
+                write(err,'(A)') 'Number of levels is not enough'
+                ERROR STOP
+            endif
+
+            !! Get the next line
+            str = self%ctl_all(l+1)
+            !! Change delemeter to space
+            do j = 1, self%cmax
+                if (str(j:j) == ',' .OR. str(j:j) == tab) then
+                    str(j:j) = ' '
+                endif
+            enddo
+            str = adjustl(str)
+
+        enddo
+
+    end subroutine read_levels_d
 
 
     subroutine get_axis_info_s(self, line_number, method, minimum, delta)
