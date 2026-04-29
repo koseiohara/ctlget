@@ -58,6 +58,7 @@ module ctlget
         procedure, pass  , public  :: get_var_description
         procedure, pass  , private :: get_line_number
         procedure, nopass, private :: get_number_of_variables
+        procedure, pass  , public  :: get_var_idx_core
         procedure, pass  , private :: get_n
         procedure, pass  , private :: get_gridnum_core
         procedure, nopass, private :: get_ctl_dir
@@ -181,7 +182,7 @@ module ctlget
         output%ctl_all(1:lines) = adjustl(output%ctl_all(1:lines))
 
         call output % get_line_number(FLAG   ='dset'                 , &  !! IN
-                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%dset              )  !! OUT
 
         if (output%dset == 0) then
@@ -191,7 +192,7 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='title'                , &  !! IN
-                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%title             )  !! OUT
 
         if (output%title == 0) then
@@ -201,7 +202,7 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='undef'                , &  !! IN
-                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%undef             )  !! OUT
 
         if (output%undef == 0) then
@@ -211,17 +212,11 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='options'              , &  !! IN
-                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%options           )  !! OUT
 
-        ! if (output%options == 0) then
-        !     write(err,'(A)') '<ERROR STOP>'
-        !     write(err,'(A)') 'Control file does not have OPTIONS line'
-        !     ERROR STOP
-        ! endif
-
         call output % get_line_number(FLAG   ='xdef'                 , &  !! IN
-                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%xdef              )  !! OUT
 
         if (output%xdef == 0) then
@@ -231,7 +226,7 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='ydef'                 , &  !! IN
-                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%ydef              )  !! OUT
 
         if (output%ydef == 0) then
@@ -241,7 +236,7 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='zdef'                 , &  !! IN
-                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%zdef              )  !! OUT
 
         if (output%zdef == 0) then
@@ -251,7 +246,7 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='tdef'                 , &  !! IN
-                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%tdef              )  !! OUT
 
         if (output%tdef == 0) then
@@ -261,7 +256,7 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='vars'                 , &  !! IN
-                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%vars              )  !! OUT
 
         if (output%vars == 0) then
@@ -271,7 +266,7 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='endvars'              , &  !! IN
-                                    & CTL_ALL=output%ctl_all(1:lines), &  !! IN
+                                    & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%endvars           )  !! OUT
 
         if (output%endvars == 0) then
@@ -1077,17 +1072,9 @@ module ctlget
         integer     , intent(out) :: output
 
         call self%memcheck('get_var_idx')  !! IN
-        write(*,*) self%vars
-        write(*,*) self%endvars
-        write(*,*) self%ctl_all(:)
-        write(*,*) self%ctl_all(self%vars+1:self%endvars-1)
 
-        ! get the line $var is defined in
-        call self % get_line_number(var                       , &
-                                  & self%ctl_all(self%vars+1:self%endvars-1), &
-                                  & output                      )
-
-        ! output = output - self%vars
+        call self % get_var_idx_core(var   , &  !! IN
+                                   & output  )  !! OUT
 
     end subroutine get_var_idx
 
@@ -1144,9 +1131,8 @@ module ctlget
             idx_cp = idx
         else if (present(var)) then
             ! get the line $var is defined in
-            call self % get_line_number(var                       , &
-                                      & self%ctl_all(1:self%lines), &
-                                      & idx_cp                      )
+            call self % get_var_idx_core(var   , &  !! IN
+                                       & idx_cp  )  !! OUT
 
             if (idx_cp == 0) then
                 write(err,'(A)') '<ERROR STOP>'
@@ -1154,7 +1140,6 @@ module ctlget
                 ERROR STOP
             endif
 
-            idx_cp = idx_cp - self%vars
         else
             write(err,'(A)') '<ERROR STOP>'
             write(err,'(A)') 'In get_var_nz() : Both "idx" and "var" were not provided'
@@ -1193,9 +1178,8 @@ module ctlget
             idx_cp = idx
         else if (present(var)) then
             ! get the line $var is defined in
-            call self % get_line_number(var                       , &
-                                      & self%ctl_all(1:self%lines), &
-                                      & idx_cp                      )
+            call self % get_var_idx_core(var   , &  !! IN
+                                       & idx_cp  )  !! OUT
 
             if (idx_cp == 0) then
                 write(err,'(A)') '<ERROR STOP>'
@@ -1203,7 +1187,6 @@ module ctlget
                 ERROR STOP
             endif
 
-            idx_cp = idx_cp - self%vars
         else
             write(err,'(A)') '<ERROR STOP>'
             write(err,'(A)') 'In get_var_description() : Both "idx" and "var" were not provided'
@@ -1227,11 +1210,11 @@ module ctlget
     end subroutine get_var_description
 
 
-    subroutine get_line_number(self, flag, ctl_all, line)
+    subroutine get_line_number(self, flag, ctl_content, line)
         use, intrinsic :: iso_c_binding  , only : tab=>c_horizontal_tab
         class(ctl)  , intent(in)  :: self
         character(*), intent(in)  :: flag
-        character(*), intent(in)  :: ctl_all(:)
+        character(*), intent(in)  :: ctl_content(:)
         integer     , intent(out) :: line
 
         character(self%cmax) :: string
@@ -1246,9 +1229,9 @@ module ctlget
         ! flag to lower case
         flag_lower = to_lower(flag)
 
-        do i = 1, size(ctl_all)
+        do i = 1, size(ctl_content)
             ! get a line
-            string = ctl_all(i)
+            string = ctl_content(i)
             do j = 1, len_trim(string)
                 if (string(j:j) == tab) then
                     string(j:j) = ' '
@@ -1278,6 +1261,26 @@ module ctlget
         line = 0
 
     end subroutine get_line_number
+
+
+    subroutine get_var_idx_core(self, var, output)
+        class(ctl)  , intent(in)  :: self
+        character(*), intent(in)  :: var
+        integer     , intent(out) :: output
+
+        character(16) :: head
+        integer :: l
+
+        do l = self%vars+1, self%endvars-1
+            read(self%ctl_all(l),*) head
+            if (trim(head) == trim(var)) then
+                output = l - self%vars
+                return
+            endif
+        enddo
+        output = 0
+
+    end subroutine get_var_idx_core
 
 
     subroutine get_number_of_variables(self)

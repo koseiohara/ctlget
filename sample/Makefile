@@ -2,7 +2,7 @@ EXE = sample
 OBJS = sample_ctlget.o
 
 FC = ifort
-#FC = gfortran
+# FC = gfortran
 
 ifeq (${FC}, ifort)
 	FLAGS = -O2 -warn all -traceback
