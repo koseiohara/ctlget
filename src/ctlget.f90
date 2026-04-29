@@ -181,7 +181,6 @@ module ctlget
         output%ctl_all(1:lines) = adjustl(output%ctl_all(1:lines))
 
         call output % get_line_number(FLAG   ='dset'                 , &  !! IN
-                                    & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%dset              )  !! OUT
 
@@ -192,7 +191,6 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='title'                , &  !! IN
-                                    & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%title             )  !! OUT
 
@@ -203,7 +201,6 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='undef'                , &  !! IN
-                                    & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%undef             )  !! OUT
 
@@ -214,7 +211,6 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='options'              , &  !! IN
-                                    & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%options           )  !! OUT
 
@@ -225,7 +221,6 @@ module ctlget
         ! endif
 
         call output % get_line_number(FLAG   ='xdef'                 , &  !! IN
-                                    & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%xdef              )  !! OUT
 
@@ -236,7 +231,6 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='ydef'                 , &  !! IN
-                                    & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%ydef              )  !! OUT
 
@@ -247,7 +241,6 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='zdef'                 , &  !! IN
-                                    & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%zdef              )  !! OUT
 
@@ -258,7 +251,6 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='tdef'                 , &  !! IN
-                                    & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%tdef              )  !! OUT
 
@@ -269,7 +261,6 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='vars'                 , &  !! IN
-                                    & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%vars              )  !! OUT
 
@@ -280,7 +271,6 @@ module ctlget
         endif
 
         call output % get_line_number(FLAG   ='endvars'              , &  !! IN
-                                    & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%endvars           )  !! OUT
 
@@ -1089,11 +1079,11 @@ module ctlget
         call self%memcheck('get_var_idx')  !! IN
         write(*,*) self%vars
         write(*,*) self%endvars
+        write(*,*) self%ctl_all(:)
         write(*,*) self%ctl_all(self%vars+1:self%endvars-1)
 
         ! get the line $var is defined in
         call self % get_line_number(var                       , &
-                                  & self%endvars-self%vars-1  , &
                                   & self%ctl_all(self%vars+1:self%endvars-1), &
                                   & output                      )
 
@@ -1155,7 +1145,6 @@ module ctlget
         else if (present(var)) then
             ! get the line $var is defined in
             call self % get_line_number(var                       , &
-                                      & self%lines                , &
                                       & self%ctl_all(1:self%lines), &
                                       & idx_cp                      )
 
@@ -1205,7 +1194,6 @@ module ctlget
         else if (present(var)) then
             ! get the line $var is defined in
             call self % get_line_number(var                       , &
-                                      & self%lines                , &
                                       & self%ctl_all(1:self%lines), &
                                       & idx_cp                      )
 
@@ -1239,12 +1227,11 @@ module ctlget
     end subroutine get_var_description
 
 
-    subroutine get_line_number(self, flag, lines, ctl_all, line)
+    subroutine get_line_number(self, flag, ctl_all, line)
         use, intrinsic :: iso_c_binding  , only : tab=>c_horizontal_tab
         class(ctl)  , intent(in)  :: self
         character(*), intent(in)  :: flag
-        integer     , intent(in)  :: lines
-        character(*), intent(in)  :: ctl_all(lines)
+        character(*), intent(in)  :: ctl_all(:)
         integer     , intent(out) :: line
 
         character(self%cmax) :: string
@@ -1259,7 +1246,7 @@ module ctlget
         ! flag to lower case
         flag_lower = to_lower(flag)
 
-        do i = 1, lines
+        do i = 1, size(ctl_all)
             ! get a line
             string = ctl_all(i)
             do j = 1, len_trim(string)
