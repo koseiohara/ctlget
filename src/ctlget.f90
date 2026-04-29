@@ -217,11 +217,11 @@ module ctlget
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%options           )  !! OUT
 
-        if (output%options == 0) then
-            write(err,'(A)') '<ERROR STOP>'
-            write(err,'(A)') 'Control file does not have OPTIONS line'
-            ERROR STOP
-        endif
+        ! if (output%options == 0) then
+        !     write(err,'(A)') '<ERROR STOP>'
+        !     write(err,'(A)') 'Control file does not have OPTIONS line'
+        !     ERROR STOP
+        ! endif
 
         call output % get_line_number(FLAG   ='xdef'                 , &  !! IN
                                     & LINES  =lines                  , &  !! IN
@@ -459,6 +459,16 @@ module ctlget
         integer :: option_end
 
         call self%memcheck('get_options')  !! IN
+
+        if (self%options == 0) then
+            self%yrev         = .FALSE.
+            self%zrev         = .FALSE.
+            self%calendar_365 = .FALSE.
+            self%endian       = 'native'
+            self%options_read = .TRUE.
+            output = ''
+            return
+        endif
 
         line = trim(self%ctl_all(self%options))
 
