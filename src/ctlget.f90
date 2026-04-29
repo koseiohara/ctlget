@@ -1098,9 +1098,9 @@ module ctlget
 
         call self%memcheck('get_var_name')  !! IN
 
-        if (idx > self%number_of_variables) then
+        if (idx > self%number_of_variables .OR. idx <= 0) then
             write(err,'(A)') '<ERROR STOP>'
-            write(err,'(A)') 'In get_var_name() : The specified index exceeds the number of variables'
+            write(err,'(A)') 'In get_var_name() : The specified index exceeds the number of variables or index is negative or zero'
             write(err,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
             write(err,'(A,I0)') 'Specified Index                          : ', idx
             ERROR STOP
@@ -1128,9 +1128,9 @@ module ctlget
         call self%memcheck('get_var_nz')  !! IN
 
         if (present(idx)) then
-            if (idx > self%number_of_variables) then
+            if (idx > self%number_of_variables .OR. idx <= 0) then
                 write(err,'(A)') '<ERROR STOP>'
-                write(err,'(A)') 'In get_var_nz() : The specified index exceeds the number of variables'
+            write(err,'(A)') 'In get_var_name() : The specified index exceeds the number of variables or index is negative or zero'
                 write(err,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
                 write(err,'(A,I0)') 'Specified Index                          : ', idx
                 ERROR STOP
@@ -1178,9 +1178,9 @@ module ctlget
         call self%memcheck('get_var_description')  !! IN
 
         if (present(idx)) then
-            if (idx > self%number_of_variables) then
+            if (idx > self%number_of_variables .OR. idx <= 0) then
                 write(err,'(A)') '<ERROR STOP>'
-                write(err,'(A)') 'In get_var_description() : The specified index exceeds the number of variables'
+            write(err,'(A)') 'In get_var_name() : The specified index exceeds the number of variables or index is negative or zero'
                 write(err,'(A,I0)') 'Number of Variables Defined in This File : ', self%number_of_variables
                 write(err,'(A,I0)') 'Specified Index                          : ', idx
                 ERROR STOP
@@ -1225,6 +1225,7 @@ module ctlget
 
 
     subroutine get_line_number(self, flag, lines, ctl_all, line)
+        use, intrinsic :: iso_c_binding  , only : tab=>c_horizontal_tab
         class(ctl)  , intent(in)  :: self
         character(*), intent(in)  :: flag
         integer     , intent(in)  :: lines
@@ -1245,6 +1246,12 @@ module ctlget
         do i = 1, lines
             ! get a line
             string = ctl_all(i)
+            do j = 1, len_trim(string)
+                if (string(j:j) == tab) then
+                    string(j:j) = ' '
+                endif
+            enddo
+            string = adjustl(string)
 
             ! find the first space
             where_space = index(string, ' ')
