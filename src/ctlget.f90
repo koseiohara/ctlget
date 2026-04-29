@@ -184,45 +184,99 @@ module ctlget
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%dset              )  !! OUT
 
+        if (output%dset == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Control file does not have DSET line'
+            ERROR STOP
+        endif
+
         call output % get_line_number(FLAG   ='title'                , &  !! IN
                                     & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%title             )  !! OUT
+
+        if (output%title == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Control file does not have TITLE line'
+            ERROR STOP
+        endif
 
         call output % get_line_number(FLAG   ='undef'                , &  !! IN
                                     & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%undef             )  !! OUT
 
+        if (output%undef == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Control file does not have UNDEF line'
+            ERROR STOP
+        endif
+
         call output % get_line_number(FLAG   ='options'              , &  !! IN
                                     & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%options           )  !! OUT
+
+        if (output%options == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Control file does not have OPTIONS line'
+            ERROR STOP
+        endif
 
         call output % get_line_number(FLAG   ='xdef'                 , &  !! IN
                                     & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%xdef              )  !! OUT
 
+        if (output%xdef == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Control file does not have XDEF line'
+            ERROR STOP
+        endif
+
         call output % get_line_number(FLAG   ='ydef'                 , &  !! IN
                                     & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%ydef              )  !! OUT
+
+        if (output%ydef == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Control file does not have YDEF line'
+            ERROR STOP
+        endif
 
         call output % get_line_number(FLAG   ='zdef'                 , &  !! IN
                                     & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%zdef              )  !! OUT
 
+        if (output%zdef == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Control file does not have ZDEF line'
+            ERROR STOP
+        endif
+
         call output % get_line_number(FLAG   ='tdef'                 , &  !! IN
                                     & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%tdef              )  !! OUT
 
+        if (output%tdef == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Control file does not have TDEF line'
+            ERROR STOP
+        endif
+
         call output % get_line_number(FLAG   ='vars'                 , &  !! IN
                                     & LINES  =lines                  , &  !! IN
                                     & CTL_ALL=output%ctl_all(1:lines), &  !! IN
                                     & LINE   =output%vars              )  !! OUT
+
+        if (output%vars == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Control file does not have VARS line'
+            ERROR STOP
+        endif
 
         call get_number_of_variables(output)  !! INOUT
 
@@ -894,6 +948,7 @@ module ctlget
 
 
     subroutine get_tini(self, calendar)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         class(ctl), intent(in)  :: self
         integer   , intent(out) :: calendar(5)
 
@@ -923,6 +978,12 @@ module ctlget
                 exit
             endif
         enddo
+        if (where_month == 0) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Invalid TDEF initial time'
+            write(err,'(A)') 'Invalid month'
+            ERROR STOP
+        endif
 
         ! get year
         read(cal_str(where_month+3:cal_len),*) calendar(1)
