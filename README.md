@@ -167,8 +167,8 @@ subroutine get_nt(self, output)
 ### get_x<a id="x"></a>
 ```fortran
 subroutine get_x(self, output)
-    class(ctl)  , intent(in)  :: self
-    real(real32), intent(out) :: output(:)
+    class(ctl)  , intent(inout) :: self
+    real(real32), intent(out)   :: output(:)
 ```
 `output` is the x-coordinate, its size is `nx` obtained by `get_gridnum()`
 
