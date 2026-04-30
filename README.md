@@ -259,7 +259,7 @@ subroutine get_var_idx(self, var, output)
 ```
 `var` is the name of target variable.
 `output` is its index.
-If the specified variable is not found, the output is a negative value.
+If the specified variable is not found, the output is zero.
 
 ### get_var_name<a id="var-name"></a>
 ```fortran

@@ -1419,11 +1419,11 @@ module ctlget
 
 
     subroutine read_levels_s(self, line_number, n, output)
-        use, intrinsic :: iso_fortran_env, only : rk=>real32, err=>error_unit
+        use, intrinsic :: iso_fortran_env, only : lrk=>real32, err=>error_unit
         class(ctl), intent(in)  :: self
         integer   , intent(in)  :: line_number
         integer   , intent(in)  :: n
-        real(rk)  , intent(out) :: output(n)
+        real(lrk) , intent(out) :: output(n)
 
         integer, parameter :: skip_col=3
         character(self%cmax) :: str
@@ -1498,11 +1498,11 @@ module ctlget
 
 
     subroutine read_levels_d(self, line_number, n, output)
-        use, intrinsic :: iso_fortran_env, only : rk=>real64, err=>error_unit
+        use, intrinsic :: iso_fortran_env, only : lrk=>real64, err=>error_unit
         class(ctl), intent(in)  :: self
         integer   , intent(in)  :: line_number
         integer   , intent(in)  :: n
-        real(rk)  , intent(out) :: output(n)
+        real(lrk) , intent(out) :: output(n)
 
         integer, parameter :: skip_col=3
         character(self%cmax) :: str
