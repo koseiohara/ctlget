@@ -197,11 +197,11 @@ module ctlget
         !     write(*,*) trim(output%ctl_all(i))
         ! enddo
 
-        if (lines == -999) then
-            write(err,'(A)') '<ERROR STOP>'
-            write(err,'(A)') 'CTLGET: Failed to read full-text because linemax is too small'
-            ERROR STOP
-        endif
+        ! if (EOF == 0) then
+        !     write(err,'(A)') '<ERROR STOP>'
+        !     write(err,'(A)') 'CTLGET: Failed to read full-text because linemax is too small'
+        !     ERROR STOP
+        ! endif
 
         close(unit)
 
