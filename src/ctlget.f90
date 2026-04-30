@@ -182,7 +182,7 @@ module ctlget
             output % ctl_all(j) = adjustl(output % ctl_all(j))
 
             ! remove the comment lines
-            if (output % ctl_all(j)(1) == '*') then
+            if (output % ctl_all(j)(1:1) == '*') then
                 output % ctl_all(j) = ''
             endif
 
