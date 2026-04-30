@@ -1444,6 +1444,9 @@ module ctlget
         str = adjustl(str)
         do j = 1, skip_col
             delim_pos = scan(str, ' ')
+            if (delim_pos == 0) then
+                exit
+            endif
             str = adjustl(str(delim_pos+1:))
         enddo
 
@@ -1520,6 +1523,9 @@ module ctlget
         str = adjustl(str)
         do j = 1, skip_col
             delim_pos = scan(str, ' ')
+            if (delim_pos == 0) then
+                exit
+            endif
             str = adjustl(str(delim_pos+1:))
         enddo
 
@@ -1579,17 +1585,18 @@ module ctlget
         real(lrk)   , intent(out) :: minimum
         real(lrk)   , intent(out) :: delta
 
-        character(self%cmax) :: line
-        integer :: dummy
+        character(self%cmax)   :: line
+        character(len(method)) :: dummy_c
+        integer :: dummy_i
 
         line = self%ctl_all(line_number)
         line = adjustl(line(5:self%cmax))
 
-        read(line,*) dummy, method
+        read(line,*) dummy_i, method
         method = to_lower(method)
 
         if (trim(method) == 'linear') then
-            read(line,*) dummy, method, minimum, delta
+            read(line,*) dummy_i, dummy_c, minimum, delta
         else if (trim(method) == 'levels') then
             minimum = 0
             delta   = 0
@@ -1611,17 +1618,18 @@ module ctlget
         real(lrk)   , intent(out) :: minimum
         real(lrk)   , intent(out) :: delta
 
-        character(self%cmax) :: line
-        integer :: dummy
+        character(self%cmax)   :: line
+        character(len(method)) :: dummy_c
+        integer :: dummy_i
 
         line = self%ctl_all(line_number)
         line = adjustl(line(5:self%cmax))
 
-        read(line,*) dummy, method
+        read(line,*) dummy_i, method
         method = to_lower(method)
 
         if (trim(method) == 'linear') then
-            read(line,*) dummy, method, minimum, delta
+            read(line,*) dummy_i, dummy_c, minimum, delta
         else if (trim(method) == 'levels') then
             minimum = 0
             delta   = 0
