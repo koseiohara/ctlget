@@ -171,10 +171,10 @@ module ctlget
         ! lines = -999
         do i = 1, lmax
             read(unit,'(A)',iostat=EOF) output%ctl_all(j)
-            lines = j - 1   ! DO NOT move this line into if (EOF ...) statement: must be here to treat boundary reasonably
+            lines = j       ! DO NOT move this line into if (EOF ...) statement: must be here to treat boundary reasonably
             ! end the loop when EOF was found
             if (EOF /= 0) then
-                ! lines = j - 1
+                lines = j - 1
                 exit
             endif
 
