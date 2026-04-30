@@ -1341,6 +1341,7 @@ module ctlget
 
 
     subroutine get_coordinate_s(self, line_number, n, output)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         integer, parameter :: lrk=real32
         class(ctl), intent(in)  :: self
         integer   , intent(in)  :: line_number
@@ -1358,22 +1359,28 @@ module ctlget
         line = adjustl(line(5:self%cmax))
 
         read(line,*) n_c, specify_method
-        if (to_lower(trim(specify_method)) == 'linear') then
+        specify_method = to_lower(specify_method)
+        if (trim(specify_method) == 'linear') then
             ! if coordinate is 'linear', compute it
             read(line,*) n_c, specify_method, min, delta
             output(1:n) = [(min+delta*real(i, kind=lrk), i = 0, n-1)]
             return
-        else
+        else if (trim(specify_method) == 'levels') then
             call self%read_levels(line_number, &  !! IN
                                 & n          , &  !! IN
                                 & output(1:n)  )  !! OUT
             return
+        else
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Invalid axis info: either linear nor levels'
+            ERROR STOP
         endif
 
     end subroutine get_coordinate_s
 
 
     subroutine get_coordinate_d(self, line_number, n, output)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         integer, parameter :: lrk=real64
         class(ctl), intent(in)  :: self
         integer   , intent(in)  :: line_number
@@ -1391,16 +1398,21 @@ module ctlget
         line = adjustl(line(5:self%cmax))
 
         read(line,*) n_c, specify_method
+        specify_method = to_lower(specify_method)
         if (to_lower(trim(specify_method)) == 'linear') then
             ! if coordinate is 'linear', compute it
             read(line,*) n_c, specify_method, min, delta
             output(1:n) = [(min+delta*real(i, kind=lrk), i = 0, n-1)]
             return
-        else
+        else if (trim(specify_method) == 'levels') then
             call self%read_levels(line_number, &  !! IN
                                 & n          , &  !! IN
                                 & output(1:n)  )  !! OUT
             return
+        else
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Invalid axis info: either linear nor levels'
+            ERROR STOP
         endif
 
     end subroutine get_coordinate_d
