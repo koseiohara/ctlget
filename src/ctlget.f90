@@ -167,8 +167,15 @@ module ctlget
         endif
 
         j = 1
+        lines = -999
         do i = 1, lmax
             read(unit,'(A)',iostat=EOF) output%ctl_all(j)
+            ! end the loop when EOF was found
+            if (EOF /= 0) then
+                lines = j - 1
+                exit
+            endif
+
             ! delete spaces and tab from left of each line
             output % ctl_all(j) = tab2space(output % ctl_all(j))
             output % ctl_all(j) = adjustl(output % ctl_all(j))
@@ -177,13 +184,13 @@ module ctlget
             if (output % ctl_all(j)(1:1) /= '*') then
                 j = j + 1
             endif
-
-            ! end the loop when EOF was found
-            if (EOF /= 0) then
-                lines = j - 1
-                exit
-            endif
         enddo
+
+        if (lines == -999) then
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') CTLGET: Failed to read full-text because linemax is too small
+            ERROR STOP
+        endif
 
         close(unit)
 
@@ -1439,6 +1446,9 @@ module ctlget
                         i = i + 1
     
                         delim_pos = scan(str, ' ')
+                        if (delim_pos == 0) then
+                            exit
+                        endif
                         str = adjustl(str(delim_pos+1:))
                         cycle
                     else
@@ -1512,6 +1522,9 @@ module ctlget
                         i = i + 1
     
                         delim_pos = scan(str, ' ')
+                        if (delim_pos == 0) then
+                            exit
+                        endif
                         str = adjustl(str(delim_pos+1:))
                         cycle
                     else
