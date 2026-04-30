@@ -16,8 +16,10 @@ VARS 6
 options   45 99 sample variable1 : this parameter has 52 levels
 variable1 45 99 sample variable1 : this parameter has 45 levels
 variable2 35 	99 sample variable2 : this parameter has 35 levels
+* dhvjlwejfv
 variable3 25 99 sample variable3 : this parameter has 25 levels
 variable4 15 99 sample variable4 : this parameter has 15 levels
+* svwdvdevfwvf
 variable5  5 99 sample variable5 : this parameter has  5 levels
 ENDVARS
 

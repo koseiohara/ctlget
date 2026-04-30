@@ -63,6 +63,7 @@ module ctlget
         procedure, pass  , private :: get_gridnum_core
         procedure, nopass, private :: get_ctl_dir
         procedure, nopass, private :: skip_column
+        procedure, nopass, private :: tab2space
         procedure, pass  , private :: memcheck
 
         generic, public  :: get_undef      => get_undef_s, get_undef_d
@@ -102,8 +103,6 @@ module ctlget
     interface ctl
         module procedure init
     end interface ctl
-
-
  
     contains
 
@@ -122,6 +121,7 @@ module ctlget
         character(64) :: iomsg
 
         integer :: i
+        integer :: j
         integer :: EOF
         integer :: lmax
         integer :: lines
@@ -166,24 +166,30 @@ module ctlget
             ERROR STOP
         endif
 
+        j = 1
         do i = 1, lmax
-            read(unit,'(A)',iostat=EOF) output%ctl_all(i)
-            lines = i
+            read(unit,'(A)',iostat=EOF) output%ctl_all(j)
+            ! delete spaces and tab from left of each line
+            output % ctl_all(j) = tab2space(output % ctl_all(j))
+            output % ctl_all(j) = adjustl(output % ctl_all(j))
+
+            ! remove the comment lines
+            if (output % ctl_all(j)(1:1) /= '*') then
+                j = j + 1
+            endif
+
             ! end the loop when EOF was found
             if (EOF /= 0) then
-                lines = lines - 1
+                lines = j - 1
                 exit
             endif
         enddo
 
         close(unit)
 
-        ! delete spaces from left of each line
-        output%ctl_all(1:lines) = adjustl(output%ctl_all(1:lines))
-
-        call output % get_line_number(FLAG   ='dset'                 , &  !! IN
+        call output % get_line_number(FLAG       ='dset'                 , &  !! IN
                                     & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
-                                    & LINE   =output%dset              )  !! OUT
+                                    & LINE       =output%dset              )  !! OUT
 
         if (output%dset == 0) then
             write(err,'(A)') '<ERROR STOP>'
@@ -191,9 +197,9 @@ module ctlget
             ERROR STOP
         endif
 
-        call output % get_line_number(FLAG   ='title'                , &  !! IN
+        call output % get_line_number(FLAG       ='title'                , &  !! IN
                                     & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
-                                    & LINE   =output%title             )  !! OUT
+                                    & LINE       =output%title             )  !! OUT
 
         if (output%title == 0) then
             write(err,'(A)') '<ERROR STOP>'
@@ -201,9 +207,9 @@ module ctlget
             ERROR STOP
         endif
 
-        call output % get_line_number(FLAG   ='undef'                , &  !! IN
+        call output % get_line_number(FLAG       ='undef'                , &  !! IN
                                     & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
-                                    & LINE   =output%undef             )  !! OUT
+                                    & LINE       =output%undef             )  !! OUT
 
         if (output%undef == 0) then
             write(err,'(A)') '<ERROR STOP>'
@@ -211,13 +217,13 @@ module ctlget
             ERROR STOP
         endif
 
-        call output % get_line_number(FLAG   ='options'              , &  !! IN
+        call output % get_line_number(FLAG       ='options'              , &  !! IN
                                     & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
-                                    & LINE   =output%options           )  !! OUT
+                                    & LINE       =output%options           )  !! OUT
 
-        call output % get_line_number(FLAG   ='xdef'                 , &  !! IN
+        call output % get_line_number(FLAG       ='xdef'                 , &  !! IN
                                     & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
-                                    & LINE   =output%xdef              )  !! OUT
+                                    & LINE       =output%xdef              )  !! OUT
 
         if (output%xdef == 0) then
             write(err,'(A)') '<ERROR STOP>'
@@ -225,9 +231,9 @@ module ctlget
             ERROR STOP
         endif
 
-        call output % get_line_number(FLAG   ='ydef'                 , &  !! IN
+        call output % get_line_number(FLAG       ='ydef'                 , &  !! IN
                                     & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
-                                    & LINE   =output%ydef              )  !! OUT
+                                    & LINE       =output%ydef              )  !! OUT
 
         if (output%ydef == 0) then
             write(err,'(A)') '<ERROR STOP>'
@@ -235,9 +241,9 @@ module ctlget
             ERROR STOP
         endif
 
-        call output % get_line_number(FLAG   ='zdef'                 , &  !! IN
+        call output % get_line_number(FLAG       ='zdef'                 , &  !! IN
                                     & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
-                                    & LINE   =output%zdef              )  !! OUT
+                                    & LINE       =output%zdef              )  !! OUT
 
         if (output%zdef == 0) then
             write(err,'(A)') '<ERROR STOP>'
@@ -245,9 +251,9 @@ module ctlget
             ERROR STOP
         endif
 
-        call output % get_line_number(FLAG   ='tdef'                 , &  !! IN
+        call output % get_line_number(FLAG       ='tdef'                 , &  !! IN
                                     & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
-                                    & LINE   =output%tdef              )  !! OUT
+                                    & LINE       =output%tdef              )  !! OUT
 
         if (output%tdef == 0) then
             write(err,'(A)') '<ERROR STOP>'
@@ -255,9 +261,9 @@ module ctlget
             ERROR STOP
         endif
 
-        call output % get_line_number(FLAG   ='vars'                 , &  !! IN
+        call output % get_line_number(FLAG       ='vars'                 , &  !! IN
                                     & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
-                                    & LINE   =output%vars              )  !! OUT
+                                    & LINE       =output%vars              )  !! OUT
 
         if (output%vars == 0) then
             write(err,'(A)') '<ERROR STOP>'
@@ -265,9 +271,9 @@ module ctlget
             ERROR STOP
         endif
 
-        call output % get_line_number(FLAG   ='endvars'              , &  !! IN
+        call output % get_line_number(FLAG       ='endvars'              , &  !! IN
                                     & CTL_CONTENT=output%ctl_all(1:lines), &  !! IN
-                                    & LINE   =output%endvars           )  !! OUT
+                                    & LINE       =output%endvars           )  !! OUT
 
         if (output%endvars == 0) then
             write(err,'(A)') '<ERROR STOP>'
@@ -1215,7 +1221,6 @@ module ctlget
 
 
     subroutine get_line_number(self, flag, ctl_content, line)
-        use, intrinsic :: iso_c_binding  , only : tab=>c_horizontal_tab
         class(ctl)  , intent(in)  :: self
         character(*), intent(in)  :: flag
         character(*), intent(in)  :: ctl_content(:)
@@ -1226,7 +1231,6 @@ module ctlget
         character(64)        :: flag_lower
         integer :: where_space
         integer :: i
-        integer :: j
 
         call self%memcheck('get_line_number')  !! IN
 
@@ -1236,11 +1240,6 @@ module ctlget
         do i = 1, size(ctl_content)
             ! get a line
             string = ctl_content(i)
-            do j = 1, len_trim(string)
-                if (string(j:j) == tab) then
-                    string(j:j) = ' '
-                endif
-            enddo
             string = adjustl(string)
 
             ! find the first space
@@ -1402,7 +1401,6 @@ module ctlget
 
     subroutine read_levels_s(self, line_number, n, output)
         use, intrinsic :: iso_fortran_env, only : rk=>real32, err=>error_unit
-        use, intrinsic :: iso_c_binding  , only : tab=>c_horizontal_tab
         class(ctl), intent(in)  :: self
         integer   , intent(in)  :: line_number
         integer   , intent(in)  :: n
@@ -1420,7 +1418,7 @@ module ctlget
         str = self%ctl_all(line_number)
         !! Change delemeter to space
         do j = 1, len_trim(str)
-            if (str(j:j) == ',' .OR. str(j:j) == tab) then
+            if (str(j:j) == ',') then
                 str(j:j) = ' '
             endif
         enddo
@@ -1463,7 +1461,7 @@ module ctlget
             str = self%ctl_all(l+1)
             !! Change delemeter to space
             do j = 1, self%cmax
-                if (str(j:j) == ',' .OR. str(j:j) == tab) then
+                if (str(j:j) == ',') then
                     str(j:j) = ' '
                 endif
             enddo
@@ -1476,7 +1474,6 @@ module ctlget
 
     subroutine read_levels_d(self, line_number, n, output)
         use, intrinsic :: iso_fortran_env, only : rk=>real64, err=>error_unit
-        use, intrinsic :: iso_c_binding  , only : tab=>c_horizontal_tab
         class(ctl), intent(in)  :: self
         integer   , intent(in)  :: line_number
         integer   , intent(in)  :: n
@@ -1494,7 +1491,7 @@ module ctlget
         str = self%ctl_all(line_number)
         !! Change delemeter to space
         do j = 1, len_trim(str)
-            if (str(j:j) == ',' .OR. str(j:j) == tab) then
+            if (str(j:j) == ',') then
                 str(j:j) = ' '
             endif
         enddo
@@ -1537,7 +1534,7 @@ module ctlget
             str = self%ctl_all(l+1)
             !! Change delemeter to space
             do j = 1, self%cmax
-                if (str(j:j) == ',' .OR. str(j:j) == tab) then
+                if (str(j:j) == ',') then
                     str(j:j) = ' '
                 endif
             enddo
@@ -1650,6 +1647,24 @@ module ctlget
         output = ''
 
     end function skip_column
+
+
+    pure elemental function tab2space(string) result(output)
+        use, intrinsic :: iso_c_binding, only : tab=>c_horizontal_tab
+        character(*), intent(in) :: string
+        character(len(string)) :: output
+        integer :: i
+
+        output = ''
+        do i = 1, len_trim(string)
+            if (string(i:i) /= tab) then
+                output(i:i) = string(i:i)
+            else
+                output(i:i) = ' '
+            endif
+        enddo
+
+    end function tab2space
 
 
     subroutine memcheck(self, func)
