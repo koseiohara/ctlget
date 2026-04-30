@@ -188,7 +188,7 @@ module ctlget
 
         if (lines == -999) then
             write(err,'(A)') '<ERROR STOP>'
-            write(err,'(A)') CTLGET: Failed to read full-text because linemax is too small
+            write(err,'(A)') 'CTLGET: Failed to read full-text because linemax is too small'
             ERROR STOP
         endif
 
@@ -1050,7 +1050,7 @@ module ctlget
         character(*), intent(out), optional :: unit
 
         character(self%cmax) :: line
-        character(4)         :: dt_c
+        character(8)         :: dt_c
         integer              :: dt_len
 
         call self%memcheck('get_dt')  !! IN
@@ -1559,6 +1559,7 @@ module ctlget
 
 
     subroutine get_axis_info_s(self, line_number, method, minimum, delta)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         integer, parameter :: lrk=real32
         class(ctl)  , intent(in)  :: self
         integer     , intent(in)  :: line_number
@@ -1573,19 +1574,24 @@ module ctlget
         line = adjustl(line(5:self%cmax))
 
         read(line,*) dummy, method
+        method = to_lower(method)
 
-        if (to_lower(trim(method)) == 'linear') then
+        if (trim(method) == 'linear') then
             read(line,*) dummy, method, minimum, delta
-        else
-            method  = 'levels'
+        else if (trim(method) == 'levels') then
             minimum = 0
             delta   = 0
+        else
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Invalid axis info: either linear nor levels'
+            ERROR STOP
         endif
 
     end subroutine get_axis_info_s
 
 
     subroutine get_axis_info_d(self, line_number, method, minimum, delta)
+        use, intrinsic :: iso_fortran_env, only : err=>error_unit
         integer, parameter :: lrk=real64
         class(ctl)  , intent(in)  :: self
         integer     , intent(in)  :: line_number
@@ -1600,13 +1606,17 @@ module ctlget
         line = adjustl(line(5:self%cmax))
 
         read(line,*) dummy, method
+        method = to_lower(method)
 
-        if (to_lower(trim(method)) == 'linear') then
+        if (trim(method) == 'linear') then
             read(line,*) dummy, method, minimum, delta
-        else
-            method  = 'levels'
+        else if (trim(method) == 'levels') then
             minimum = 0
             delta   = 0
+        else
+            write(err,'(A)') '<ERROR STOP>'
+            write(err,'(A)') 'Invalid axis info: either linear nor levels'
+            ERROR STOP
         endif
 
     end subroutine get_axis_info_d
