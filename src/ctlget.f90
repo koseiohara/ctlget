@@ -395,11 +395,11 @@ module ctlget
 
         ! trimming
         line      = adjustl(line(6:self%cmax))
-        title_end = index(line(1:self%cmax), '*') - 1
+        ! title_end = index(line(1:self%cmax), '*') - 1
         ! if space is not found, the last character is selected
-        if (title_end == -1) then
-            title_end = self%cmax
-        endif
+        ! if (title_end == -1) then
+        title_end = self%cmax
+        ! endif
         output = trim(line(1:title_end))
 
     end subroutine get_title
@@ -499,11 +499,11 @@ module ctlget
 
         ! trimming
         line = adjustl(line(8:self%cmax))
-        option_end = index(line(1:self%cmax), '*') - 1
+        ! option_end = index(line(1:self%cmax), '*') - 1
         ! if space is not found, the last character is selected
-        if (option_end == -1) then
-            option_end = self%cmax
-        endif
+        ! if (option_end == -1) then
+        option_end = self%cmax
+        ! endif
 
         output = trim(line(1:option_end))
 

@@ -38,7 +38,7 @@ program sample_ctlget
     character(128) :: description
 
     input_ctl = ctl(ctlname=ctlname, &  !! IN : File name of the target control file
-                  & linemax=20      )  !! IN : Maximum allowable number of lines in the file (default : 100)
+                  & linemax=24      )  !! IN : Maximum allowable number of lines in the file (default : 100)
 
     write(*,*)
     call input_ctl%get_dset(binname)  !! OUT : File name of the target binary file (absolute path)
