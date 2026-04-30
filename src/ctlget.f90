@@ -183,7 +183,7 @@ module ctlget
 
             ! remove the comment lines
             if (output % ctl_all(j)(1) == '*') then
-                output % ctl_all(j)(comment:) = ''
+                output % ctl_all(j) = ''
             endif
 
             ! remove blank lines including comment lines
