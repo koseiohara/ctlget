@@ -125,6 +125,7 @@ module ctlget
         integer :: EOF
         integer :: lmax
         integer :: lines
+        integer :: comment
 
         if (present(linemax)) then
             if (linemax <= 0) then
@@ -181,9 +182,21 @@ module ctlget
             output % ctl_all(j) = adjustl(output % ctl_all(j))
 
             ! remove the comment lines
-            if (output % ctl_all(j)(1:1) /= '*') then
+            comment = index(output % ctl_all(j), '*')
+            if (comment > 0) then
+                output % ctl_all(j)(comment:) = ''
+            endif
+
+            if (trim(output % ctl_all(j)) /= '') then
                 j = j + 1
             endif
+            ! if (output % ctl_all(j)(1:1) /= '*') then
+            !     j = j + 1
+            ! endif
+        enddo
+
+        do i = 1, lines
+            write(*,*) trim(output%ctl_all(i))
         enddo
 
         if (lines == -999) then
